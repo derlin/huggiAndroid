@@ -15,7 +15,7 @@
  */
 
 
-package ch.eiafr.hugginess.MySPP;
+package ch.eiafr.hugginess.myspp;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -32,6 +32,7 @@ import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.*;
 import android.widget.AdapterView.OnItemClickListener;
+import ch.eiafr.hugginess.R;
 
 import java.util.Set;
 

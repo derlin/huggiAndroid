@@ -15,7 +15,7 @@
  */
 
 
-package ch.eiafr.hugginess.MySPP;
+package ch.eiafr.hugginess.myspp;
 
 public class BluetoothState {
     // Constants that indicate the current connection state

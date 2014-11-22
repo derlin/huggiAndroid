@@ -6,6 +6,7 @@
 *.iml
 gen/
 *.properties
+out/
 #################
 ## Eclipse
 #################

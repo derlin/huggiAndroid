@@ -2,7 +2,7 @@ package ch.eiafr.hugginess.app;
 
 import android.app.Activity;
 import android.os.Bundle;
-import ch.eiafr.hugginess.MySPP.R;
+import ch.eiafr.hugginess.R;
 
 public class Main extends Activity{
     /** Called when the activity is first created. */

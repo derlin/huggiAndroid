@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ch.eiafr.hugginess.MySPP;
+package ch.eiafr.hugginess.myspp;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
@@ -360,7 +360,7 @@ public class BluetoothService {
                                 , builder.length(), -1, builder.toString()).sendToTarget();
                         builder.delete( 0, builder.length() ); // clear buffer
                     } else {
-                        builder.append( data );
+                        builder.append( (char)data );
                     }
                 } catch (IOException e) {
                     connectionLost();
