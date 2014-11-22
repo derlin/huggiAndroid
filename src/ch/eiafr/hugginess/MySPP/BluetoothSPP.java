@@ -36,16 +36,16 @@ public class BluetoothSPP {
     private OnDataReceivedListener mDataReceivedListener = null;
     private BluetoothConnectionListener mBluetoothConnectionListener = null;
     private AutoConnectionListener mAutoConnectionListener = null;
-    
+
     // Context from activity which call this class
     private Context mContext;
-    
+
     // Local Bluetooth adapter
     private BluetoothAdapter mBluetoothAdapter = null;
 
     // Member object for the chat services
     private BluetoothService mChatService = null;
-    
+
     // Name and Address of the connected device
     private String mDeviceName = null;
     private String mDeviceAddress = null;
@@ -55,37 +55,37 @@ public class BluetoothSPP {
     private boolean isConnected = false;
     private boolean isConnecting = false;
     private boolean isServiceRunning = false;
-    
+
     private String keyword = "";
     private boolean isAndroid = BluetoothState.DEVICE_ANDROID;
-    
+
     private BluetoothConnectionListener bcl;
     private int c = 0;
-    
+
     public BluetoothSPP(Context context) {
         mContext = context;
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
-    
+
     public interface BluetoothStateListener {
         public void onServiceStateChanged( int state );
     }
-    
+
     public interface OnDataReceivedListener {
-        public void onDataReceived( byte[] data, String message );
+        public void onDataReceived( String message );
     }
-    
+
     public interface BluetoothConnectionListener {
         public void onDeviceConnected( String name, String address );
         public void onDeviceDisconnected();
         public void onDeviceConnectionFailed();
     }
-    
+
     public interface AutoConnectionListener {
         public void onAutoConnectionStarted();
         public void onNewConnection( String name, String address );
     }
-    
+
     public boolean isBluetoothAvailable() {
         try {
             if (mBluetoothAdapter == null || mBluetoothAdapter.getAddress().equals(null))
@@ -95,46 +95,46 @@ public class BluetoothSPP {
         }
         return true;
     }
-    
+
     public boolean isBluetoothEnabled() {
         return mBluetoothAdapter.isEnabled();
     }
-    
+
     public boolean isServiceAvailable() {
         return mChatService != null;
     }
-    
+
     public boolean isAutoConnecting() {
         return isAutoConnecting;
     }
-    
+
     public boolean startDiscovery() {
         return mBluetoothAdapter.startDiscovery();
     }
-    
+
     public boolean isDiscovery() {
         return mBluetoothAdapter.isDiscovering();
     }
-    
+
     public boolean cancelDiscovery() {
         return mBluetoothAdapter.cancelDiscovery();
     }
-    
+
     public void setupService() {
         mChatService = new BluetoothService(mContext, mHandler);
     }
-    
+
     public BluetoothAdapter getBluetoothAdapter() {
         return mBluetoothAdapter;
     }
-    
+
     public int getServiceState() {
-        if(mChatService != null) 
+        if(mChatService != null)
             return mChatService.getState();
-        else 
+        else
             return -1;
     }
-    
+
     public void startService(boolean isAndroid) {
         if (mChatService != null) {
             if (mChatService.getState() == BluetoothState.STATE_NONE) {
@@ -144,7 +144,7 @@ public class BluetoothSPP {
             }
         }
     }
-    
+
     public void stopService() {
         if (mChatService != null) {
             isServiceRunning = false;
@@ -159,13 +159,13 @@ public class BluetoothSPP {
             }
         }, 500);
     }
-    
+
     public void setDeviceTarget(boolean isAndroid) {
         stopService();
         startService(isAndroid);
         BluetoothSPP.this.isAndroid = isAndroid;
     }
-    
+
     @SuppressLint("HandlerLeak")
     private final Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -173,11 +173,10 @@ public class BluetoothSPP {
             case BluetoothState.MESSAGE_WRITE:
                 break;
             case BluetoothState.MESSAGE_READ:
-                byte[] readBuf = (byte[]) msg.obj;
-                String readMessage = new String(readBuf);
-                if(readBuf != null && readBuf.length > 0) {
+                String readMessage = ( String ) msg.obj;
+                if(readMessage != null && !readMessage.isEmpty()) {
                     if(mDataReceivedListener != null)
-                        mDataReceivedListener.onDataReceived(readBuf, readMessage);
+                        mDataReceivedListener.onDataReceived(readMessage);
                 }
                 break;
             case BluetoothState.MESSAGE_DEVICE_NAME:
@@ -187,10 +186,12 @@ public class BluetoothSPP {
                     mBluetoothConnectionListener.onDeviceConnected(mDeviceName, mDeviceAddress);
                 isConnected = true;
                 break;
+
             case BluetoothState.MESSAGE_TOAST:
                 Toast.makeText(mContext, msg.getData().getString(BluetoothState.TOAST)
                         , Toast.LENGTH_SHORT).show();
                 break;
+
             case BluetoothState.MESSAGE_STATE_CHANGE:
                 if(mBluetoothStateListener != null)
                     mBluetoothStateListener.onServiceStateChanged(msg.arg1);
@@ -205,7 +206,7 @@ public class BluetoothSPP {
                     mDeviceName = null;
                     mDeviceAddress = null;
                 }
-                
+
                 if(!isConnecting && msg.arg1 == BluetoothState.STATE_CONNECTING) {
                     isConnecting = true;
                 } else if(isConnecting) {
@@ -219,22 +220,22 @@ public class BluetoothSPP {
             }
         }
     };
-    
+
     public void stopAutoConnect() {
         isAutoConnectionEnabled = false;
     }
-    
+
     public void connect(Intent data) {
         String address = data.getExtras().getString(BluetoothState.EXTRA_DEVICE_ADDRESS);
         BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
         mChatService.connect(device);
     }
-    
+
     public void connect(String address) {
         BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
         mChatService.connect(device);
     }
-    
+
     public void disconnect() {
         if(mChatService != null) {
             isServiceRunning = false;
@@ -245,32 +246,32 @@ public class BluetoothSPP {
             }
         }
     }
-    
+
     public void setBluetoothStateListener (BluetoothStateListener listener) {
         mBluetoothStateListener = listener;
     }
-    
+
     public void setOnDataReceivedListener (OnDataReceivedListener listener) {
         mDataReceivedListener = listener;
     }
-    
+
     public void setBluetoothConnectionListener (BluetoothConnectionListener listener) {
         mBluetoothConnectionListener = listener;
     }
-    
+
     public void setAutoConnectionListener(AutoConnectionListener listener) {
         mAutoConnectionListener = listener;
     }
-    
+
     public void enable() {
         mBluetoothAdapter.enable();
     }
-    
+
     public void send(byte[] data, boolean CRLF) {
         if(mChatService.getState() == BluetoothState.STATE_CONNECTED) {
             if(CRLF) {
                 byte[] data2 = new byte[data.length + 2];
-                for(int i = 0 ; i < data.length ; i++) 
+                for(int i = 0 ; i < data.length ; i++)
                     data2[i] = data[i];
                 data2[data2.length - 0] = 0x0A;
                 data2[data2.length] = 0x0D;
@@ -280,46 +281,46 @@ public class BluetoothSPP {
             }
         }
     }
-    
+
     public void send(String data, boolean CRLF) {
         if(mChatService.getState() == BluetoothState.STATE_CONNECTED) {
-            if(CRLF) 
+            if(CRLF)
                 data += "\n";
             mChatService.write(data.getBytes());
         }
     }
-    
+
     public String getConnectedDeviceName() {
         return mDeviceName;
     }
-    
+
     public String getConnectedDeviceAddress() {
         return mDeviceAddress;
     }
-    
+
     public String[] getPairedDeviceName() {
         int c = 0;
-        Set<BluetoothDevice> devices = mBluetoothAdapter.getBondedDevices();  
+        Set<BluetoothDevice> devices = mBluetoothAdapter.getBondedDevices();
         String[] name_list = new String[devices.size()];
-        for(BluetoothDevice device : devices) {  
+        for(BluetoothDevice device : devices) {
             name_list[c] = device.getName();
             c++;
-        }  
+        }
         return name_list;
     }
-    
+
     public String[] getPairedDeviceAddress() {
         int c = 0;
-        Set<BluetoothDevice> devices = mBluetoothAdapter.getBondedDevices();  
+        Set<BluetoothDevice> devices = mBluetoothAdapter.getBondedDevices();
         String[] address_list = new String[devices.size()];
-        for(BluetoothDevice device : devices) {  
+        for(BluetoothDevice device : devices) {
             address_list[c] = device.getAddress();
             c++;
-        }  
+        }
         return address_list;
     }
-    
-    
+
+
     public void autoConnect(String keywordName) {
         if(!isAutoConnectionEnabled) {
             keyword = keywordName;
@@ -337,13 +338,13 @@ public class BluetoothSPP {
                     arr_filter_name.add(arr_name[i]);
                 }
             }
-    
+
             bcl = new BluetoothConnectionListener() {
                 public void onDeviceConnected(String name, String address) {
                     bcl = null;
                     isAutoConnecting = false;
                 }
-    
+
                 public void onDeviceDisconnected() { }
                 public void onDeviceConnectionFailed() {
                 	Log.e("CHeck", "Failed");
@@ -369,9 +370,9 @@ public class BluetoothSPP {
             c = 0;
             if(mAutoConnectionListener != null)
                 mAutoConnectionListener.onNewConnection(arr_name[c], arr_address[c]);
-            if(arr_filter_address.size() > 0) 
+            if(arr_filter_address.size() > 0)
                 connect(arr_filter_address.get(c));
-            else 
+            else
                 Toast.makeText(mContext, "Device name mismatch", Toast.LENGTH_SHORT).show();
         }
     }

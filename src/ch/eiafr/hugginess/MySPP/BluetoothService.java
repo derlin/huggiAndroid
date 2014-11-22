@@ -30,7 +30,6 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.UUID;
 
 @SuppressLint("NewApi")
@@ -349,25 +348,19 @@ public class BluetoothService {
         }
 
         public void run() {
-            byte[] buffer;
-            ArrayList<Integer> arr_byte = new ArrayList<Integer>();
+            StringBuilder builder = new StringBuilder(  );
 
             // Keep listening to the InputStream while connected
             while (true) {
                 try {
                     int data = mmInStream.read();
-                    if(data == 0x0A) { // 10: \n
-//                    } else if(data == 0x0D) {   // 13: \r
-                        buffer = new byte[arr_byte.size()];
-                        for(int i = 0 ; i < arr_byte.size() ; i++) {
-                            buffer[i] = arr_byte.get(i).byteValue();
-                        }
+                    if(data == '\n') {
                         // Send the obtained bytes to the UI Activity
                         mHandler.obtainMessage(BluetoothState.MESSAGE_READ
-                                , buffer.length, -1, buffer).sendToTarget();
-                        arr_byte = new ArrayList<Integer>();
+                                , builder.length(), -1, builder.toString()).sendToTarget();
+                        builder.delete( 0, builder.length() ); // clear buffer
                     } else {
-                        arr_byte.add(data);
+                        builder.append( data );
                     }
                 } catch (IOException e) {
                     connectionLost();
@@ -381,12 +374,7 @@ public class BluetoothService {
         // Write to the connected OutStream.
         // @param buffer  The bytes to write
         public void write(byte[] buffer) {
-            try {/*
-                byte[] buffer2 = new byte[buffer.length + 2];
-                for(int i = 0 ; i < buffer.length ; i++) 
-                    buffer2[i] = buffer[i];
-                buffer2[buffer2.length - 2] = 0x0A;
-                buffer2[buffer2.length - 1] = 0x0D;*/
+            try {
                 mmOutStream.write(buffer);
                 // Share the sent message back to the UI Activity
                 mHandler.obtainMessage(BluetoothState.MESSAGE_WRITE
