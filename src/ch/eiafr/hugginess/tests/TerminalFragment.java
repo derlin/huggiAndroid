@@ -2,6 +2,7 @@ package ch.eiafr.hugginess.tests;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -11,106 +12,99 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import ch.eiafr.hugginess.R;
+import ch.eiafr.hugginess.SPPActivity;
+import ch.eiafr.hugginess.myspp.BluetoothListener;
 import ch.eiafr.hugginess.myspp.BluetoothSPP;
 import ch.eiafr.hugginess.myspp.BluetoothState;
 
-import static ch.eiafr.hugginess.myspp.BluetoothSPP.BluetoothConnectionListener;
-import static ch.eiafr.hugginess.myspp.BluetoothSPP.OnDataReceivedListener;
+import static ch.eiafr.hugginess.myspp.BluetoothListener.OnDataReceivedListener;
 
 /**
  * @author: Lucy Linder
  * @date: 22.11.2014
  */
 public class TerminalFragment extends Fragment{
-    BluetoothSPP bt;
-    View view;
-    TextView textStatus, textRead;
-    EditText etMessage;
+    private BluetoothSPP mSPP;
+    private View view;
+    private TextView mReceivedText;
+    private Button mSendButton;
+    private EditText mEditText;
 
     Menu menu;
 
 
     @Override
     public void onCreate( Bundle savedInstanceState ){
-        Log.d( "prout", "on create" );
+        Log.d( "lala", "on create" );
         super.onCreate( savedInstanceState );
     }
 
 
     @Override
     public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ){
-        Log.d( "prout", "on create view" );
+        Log.d( "lala", "on create view" );
         view = inflater.inflate( R.layout.terminal, container, false );
 
         Log.i( "Check", "onCreateView" );
 
-        textRead = (TextView ) view.findViewById(R.id.textRead);
-        textStatus = ( TextView ) view.findViewById(R.id.textStatus);
-        etMessage = ( EditText ) view.findViewById(R.id.etMessage);
+        //        mTextStatus = ( TextView ) view.findViewById(R.id.textStatus);
+        mEditText = ( EditText ) view.findViewById( R.id.etMessage );
+        mReceivedText = ( TextView ) view.findViewById( R.id.textRead );
+        mReceivedText.setMovementMethod( new ScrollingMovementMethod() );
 
-        bt = ((TabTestActivity)getActivity()).bt; //new BluetoothSPP(getActivity()); TODO
 
-        if(bt.getServiceState() == BluetoothState.STATE_CONNECTED) {
-            setup();
-            textStatus.setText("Status : Connected to " + bt.getConnectedDeviceName());
-        }
+        mSPP = ( ( SPPActivity ) getActivity() ).getSPP();
 
-        bt.setOnDataReceivedListener( new OnDataReceivedListener(){
+        mSPP.setOnDataReceivedListener( new OnDataReceivedListener(){
             public void onDataReceived( String message ){
-                textRead.append( message + "\n" );
+                mReceivedText.append( message + "\n" );
             }
         } );
 
-        bt.setBluetoothConnectionListener(new BluetoothConnectionListener() {
-            public void onDeviceDisconnected() {
-                textStatus.setText("Status : Not connected");
+        mSendButton = ( Button ) view.findViewById( R.id.btnSend );
+        mSendButton.setEnabled( mSPP.getServiceState() == BluetoothState.STATE_CONNECTED );
+        mSendButton.setOnClickListener( new View.OnClickListener(){
+            public void onClick( View v ){
+                if( mEditText.getText().length() != 0 ){
+                    mSPP.send( mEditText.getText().toString(), true );
+                }
+            }
+        } );
+
+        mSPP.setBluetoothConnectionListener( new BluetoothListener.ConnectionListenerAdapter(){
+            @Override
+            public void onDeviceConnected( String name, String address ){
+                mSendButton.setEnabled( true );
             }
 
-            public void onDeviceConnectionFailed() {
-                textStatus.setText("Status : Connection failed");
+            @Override
+            public void onDeviceDisconnected(){
+                mSendButton.setEnabled( false );
             }
 
-            public void onDeviceConnected(String name, String address) {
-                textStatus.setText( "Status : Connected to " + name );
-                setup();
-            }
-        });
+        } );
 
         return view;
     }
 
 
-
-    public void setup() {
-        Button btnSend = ( Button ) view.findViewById(R.id.btnSend);
-        btnSend.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v){
-                if(etMessage.getText().length() != 0) {
-                    bt.send(etMessage.getText().toString(), true);
-                    etMessage.setText("");
-                }
-            }
-        });
-    }
-
-
     @Override
     public void onPause(){
-        Log.d( "prout", "on pause" );
+        Log.d( "lala", "on pause" );
         super.onPause();
     }
 
 
     @Override
     public void onDestroyView(){
-        Log.d( "prout", "on destroy view" );
+        Log.d( "lala", "on destroy view" );
         super.onDestroyView();
     }
 
 
     @Override
     public void onDestroy(){
-        Log.d( "prout", "ondestroy" );
+        Log.d( "lala", "ondestroy" );
         super.onDestroy();
     }
 }//end class

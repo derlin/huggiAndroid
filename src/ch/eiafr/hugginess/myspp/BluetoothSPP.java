@@ -34,10 +34,10 @@ import java.util.Set;
 
 public class BluetoothSPP{
     // Listener for Bluetooth Status & Connection
-    private List<BluetoothStateListener> mBluetoothStateListener = new ArrayList<>();
-    private List<OnDataReceivedListener> mDataReceivedListener = new ArrayList<>();
-    private List<BluetoothConnectionListener> mBluetoothConnectionListener = new ArrayList<>();
-    private List<AutoConnectionListener> mAutoConnectionListener = new ArrayList<>();
+    private List<BluetoothListener.OnStateChangedListener> mBluetoothStateListener = new ArrayList<>();
+    private List<BluetoothListener.OnDataReceivedListener> mDataReceivedListener = new ArrayList<>();
+    private List<BluetoothListener.ConnectionListener> mBluetoothConnectionListener = new ArrayList<>();
+    private List<BluetoothListener.AutoConnectionListener> mAutoConnectionListener = new ArrayList<>();
 
     // Context from activity which call this class
     private Context mContext;
@@ -61,7 +61,7 @@ public class BluetoothSPP{
     private String keyword = "";
     private boolean isAndroid = BluetoothState.DEVICE_ANDROID;
 
-    private BluetoothConnectionListener bcl;
+    private BluetoothListener.ConnectionListener bcl;
     private int c = 0;
 
 
@@ -326,7 +326,7 @@ public class BluetoothSPP{
                 }
             }
 
-            bcl = new BluetoothConnectionListener(){
+            bcl = new BluetoothListener.ConnectionListener(){
                 public void onDeviceConnected( String name, String address ){
                     bcl = null;
                     isAutoConnecting = false;
@@ -375,120 +375,98 @@ public class BluetoothSPP{
 
     // interfaces
 
-    public interface BluetoothStateListener{
-        public void onServiceStateChanged( int state );
-    }
-
-    public interface OnDataReceivedListener{
-        public void onDataReceived( String message );
-    }
-
-    public interface BluetoothConnectionListener{
-        public void onDeviceConnected( String name, String address );
-
-        public void onDeviceDisconnected();
-
-        public void onDeviceConnectionFailed();
-    }
-
-    public interface AutoConnectionListener{
-        public void onAutoConnectionStarted();
-
-        public void onNewConnection( String name, String address );
-    }
-
     // ----------------------------------------------------
 
     // add
-    public void setBluetoothStateListener( BluetoothStateListener listener ){
+    public void setBluetoothStateListener( BluetoothListener.OnStateChangedListener listener ){
         if(!mBluetoothStateListener.contains( listener ))
             mBluetoothStateListener.add( listener );
     }
 
 
-    public void setOnDataReceivedListener( OnDataReceivedListener listener ){
+    public void setOnDataReceivedListener( BluetoothListener.OnDataReceivedListener listener ){
         if(!mDataReceivedListener.contains( listener ))
             mDataReceivedListener.add( listener );
     }
 
 
-    public void setBluetoothConnectionListener( BluetoothConnectionListener listener ){
+    public void setBluetoothConnectionListener( BluetoothListener.ConnectionListener listener ){
         if(!mBluetoothConnectionListener.contains( listener ))
             mBluetoothConnectionListener.add( listener );
     }
 
 
-    public void setAutoConnectionListener( AutoConnectionListener listener ){
+    public void setAutoConnectionListener( BluetoothListener.AutoConnectionListener listener ){
         if(!mAutoConnectionListener.contains( listener ))
             mAutoConnectionListener.add( listener );
     }
 
 
     // remove
-    public void removeBluetoothStateListener( BluetoothStateListener listener ){
+    public void removeBluetoothStateListener( BluetoothListener.OnStateChangedListener listener ){
         if(mBluetoothStateListener.contains( listener ))
             mBluetoothStateListener.remove( listener );
     }
 
 
-    public void removeOnDataReceivedListener( OnDataReceivedListener listener ){
+    public void removeOnDataReceivedListener( BluetoothListener.OnDataReceivedListener listener ){
         if(mDataReceivedListener.contains( listener ))
             mDataReceivedListener.remove( listener );
     }
 
 
-    public void removeBluetoothConnectionListener( BluetoothConnectionListener listener ){
+    public void removeBluetoothConnectionListener( BluetoothListener.ConnectionListener listener ){
         if(mAutoConnectionListener.contains( listener ))
             mBluetoothConnectionListener.remove( listener );
     }
 
 
-    public void removeAutoConnectionListener( AutoConnectionListener listener ){
+    public void removeAutoConnectionListener( BluetoothListener.AutoConnectionListener listener ){
         if(mAutoConnectionListener.contains( listener ))
             mAutoConnectionListener.remove( listener );
     }
 
     // notify
     private void notifyDeviceConnectionFailed(){
-        for( BluetoothConnectionListener listener : mBluetoothConnectionListener ){
+        for( BluetoothListener.ConnectionListener listener : mBluetoothConnectionListener ){
             listener.onDeviceConnectionFailed();
         }//end for
     }
 
     private void notifyDeviceDisconnected(){
-        for( BluetoothConnectionListener listener : mBluetoothConnectionListener ){
+        for( BluetoothListener.ConnectionListener listener : mBluetoothConnectionListener ){
             listener.onDeviceDisconnected();
         }//end for
     }
 
     private void notifyDeviceConnected(String name, String address){
-        for( BluetoothConnectionListener listener : mBluetoothConnectionListener ){
+        for( BluetoothListener.ConnectionListener listener : mBluetoothConnectionListener ){
             listener.onDeviceConnected( name, address );
         }//end for
     }
 
 
     private void notifyNewConnection(String name, String address){
-        for( AutoConnectionListener listener : mAutoConnectionListener ){
+        for( BluetoothListener.AutoConnectionListener listener : mAutoConnectionListener ){
             listener.onNewConnection( name, address );
         }//end for
 
     }
 
     private void notifyAutoConnectionStarted(){
-        for( AutoConnectionListener listener : mAutoConnectionListener ){
+        for( BluetoothListener.AutoConnectionListener listener : mAutoConnectionListener ){
             listener.onAutoConnectionStarted();
         }//end for
     }
 
     private void notifyDataReceived( String readMessage ){
-        for( OnDataReceivedListener listener : mDataReceivedListener ){
+        for( BluetoothListener.OnDataReceivedListener listener : mDataReceivedListener ){
             listener.onDataReceived( readMessage );
         }//end for
     }
 
     private void notifyServiceStateChanged( int state ){
-        for( BluetoothStateListener listener : mBluetoothStateListener ){
+        for( BluetoothListener.OnStateChangedListener listener : mBluetoothStateListener ){
             listener.onServiceStateChanged( state );
         }//end for
     }
