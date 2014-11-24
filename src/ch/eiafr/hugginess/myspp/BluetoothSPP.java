@@ -110,6 +110,7 @@ public class BluetoothSPP{
         return mBluetoothAdapter.cancelDiscovery();
     }
 
+    public boolean isConnected(){ return isConnected; }
 
     public void setupService(){
         mChatService = new BluetoothService( mContext, mHandler );
@@ -251,25 +252,17 @@ public class BluetoothSPP{
     }
 
 
-    public void send( byte[] data, boolean CRLF ){
+    public void send( byte[] data, boolean nl ){
         if( mChatService.getState() == BluetoothState.STATE_CONNECTED ){
-            if( CRLF ){
-                byte[] data2 = new byte[ data.length + 2 ];
-                for( int i = 0; i < data.length; i++ )
-                    data2[ i ] = data[ i ];
-                data2[ data2.length - 0 ] = 0x0A;
-                data2[ data2.length ] = 0x0D;
-                mChatService.write( data2 );
-            }else{
                 mChatService.write( data );
-            }
+                if(nl) mChatService.write( "\n".getBytes() );
         }
     }
 
 
-    public void send( String data, boolean CRLF ){
+    public void send( String data, boolean nl ){
         if( mChatService.getState() == BluetoothState.STATE_CONNECTED ){
-            if( CRLF ) data += "\n";
+            if( nl ) data += "\n";
             mChatService.write( data.getBytes() );
         }
     }
