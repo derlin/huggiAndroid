@@ -7,7 +7,8 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
-    <application android:label="@string/app_name" android:icon="@drawable/ic_launcher">
+    <application android:label="@string/app_name" android:icon="@drawable/ic_launcher"
+        android:name=".app.App">
 
         <activity android:name="ch.eiafr.hugginess.app.Main" android:label="@string/app_name" />
 
@@ -19,5 +20,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+
+        <service android:enabled="true" android:name=".myspp.BluetoothService" />
     </application>
 </manifest>

@@ -1,8 +1,13 @@
 package ch.eiafr.hugginess.tests;
 
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,20 +16,21 @@ import android.widget.Button;
 import android.widget.TextView;
 import ch.eiafr.hugginess.R;
 import ch.eiafr.hugginess.SPPActivity;
-import ch.eiafr.hugginess.myspp.BluetoothListener;
-import ch.eiafr.hugginess.myspp.BluetoothSPP;
+import ch.eiafr.hugginess.myspp.BluetoothService;
 
 import java.util.Timer;
 import java.util.TimerTask;
+
+import static ch.eiafr.hugginess.myspp.BluetoothState.*;
 
 /**
  * @author: Lucy Linder
  * @date: 22.11.2014
  */
-public class DummyFragment extends Fragment implements Button.OnClickListener {
+public class DummyFragment extends Fragment implements Button.OnClickListener{
 
     private static final long BT_TIMEOUT = 4000;
-    private BluetoothSPP mSPP;
+    private BluetoothService mSPP;
 
 
     public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ){
@@ -47,10 +53,10 @@ public class DummyFragment extends Fragment implements Button.OnClickListener {
 
         switch( v.getId() ){
             case R.id.echo_button:
-                mSPP.send( "$E@this is an echo test".getBytes(), true );
+                mSPP.send( "$E@this is an echo test", true );
                 break;
             case R.id.sleep_button:
-                mSPP.send( "$S".getBytes(), true );
+                mSPP.send( "$S", true );
                 break;
 
             case R.id.getHugs_button:
@@ -62,28 +68,36 @@ public class DummyFragment extends Fragment implements Button.OnClickListener {
 
 
     private void getHugs(){
-        int count = 0;
-        final BluetoothListener.OnDataReceivedListener listener = new BluetoothListener
-                .OnDataReceivedListener() {
-            @Override
-            public void onDataReceived( String message ){
-                if( message.startsWith( "@" ) ){
-                    mSPP.send( "#".getBytes(), false );
-                    Log.d( "lala", "Received hug ");
-                }
-            }
-        };
+        LocalBroadcastManager.getInstance( getActivity() ).registerReceiver( mBroadcastReceiver, new IntentFilter(
+                BTSERVICE_INTENT_FILTER ) );
 
-        mSPP.send( "$H".getBytes(), false );
+
+        mSPP.send( "$H", false );
         Timer t = new Timer();
-        t.schedule( new TimerTask() {
+        t.schedule( new TimerTask(){
             @Override
             public void run(){
                 Log.d( "lala", "bt timeout" );
-                mSPP.removeOnDataReceivedListener( listener );
+                LocalBroadcastManager.getInstance( getActivity() ).unregisterReceiver( mBroadcastReceiver );
             }
         }, BT_TIMEOUT );
 
-        mSPP.setOnDataReceivedListener( listener );
     }
+
+
+    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver(){
+        @Override
+        public void onReceive( Context context, Intent intent ){
+            switch( intent.getStringExtra( EXTRA_EVT_TYPE ) ){
+                case EVT_DATA_RECEIVED:
+                    String message = intent.getStringExtra( EVT_EXTRA_DATA );
+                    if( message.startsWith( "@" ) ){
+                        mSPP.send( "#", false );
+                        Log.d( "lala", "Received hug " );
+                    }
+                    break;
+            }
+        }
+    };
+
 }//end class

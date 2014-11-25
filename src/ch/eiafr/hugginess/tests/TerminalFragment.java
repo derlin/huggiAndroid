@@ -1,7 +1,12 @@
 package ch.eiafr.hugginess.tests;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,22 +18,21 @@ import android.widget.EditText;
 import android.widget.TextView;
 import ch.eiafr.hugginess.R;
 import ch.eiafr.hugginess.SPPActivity;
-import ch.eiafr.hugginess.myspp.BluetoothListener;
-import ch.eiafr.hugginess.myspp.BluetoothSPP;
-import ch.eiafr.hugginess.myspp.BluetoothState;
+import ch.eiafr.hugginess.myspp.BluetoothService;
 
-import static ch.eiafr.hugginess.myspp.BluetoothListener.OnDataReceivedListener;
+import static ch.eiafr.hugginess.myspp.BluetoothState.*;
 
 /**
  * @author: Lucy Linder
  * @date: 22.11.2014
  */
 public class TerminalFragment extends Fragment{
-    private BluetoothSPP mSPP;
+    private BluetoothService mSPP;
     private View view;
     private TextView mReceivedText;
     private Button mSendButton;
     private EditText mEditText;
+    private BroadcastReceiver mBroadcastReceiver;
 
     Menu menu;
 
@@ -55,14 +59,31 @@ public class TerminalFragment extends Fragment{
 
         mSPP = ( ( SPPActivity ) getActivity() ).getSPP();
 
-        mSPP.setOnDataReceivedListener( new OnDataReceivedListener(){
-            public void onDataReceived( String message ){
-                mReceivedText.append( message + "\n" );
+
+        mBroadcastReceiver = new BroadcastReceiver(){
+            @Override
+            public void onReceive( Context context, Intent intent ){
+                switch( intent.getStringExtra( EXTRA_EVT_TYPE ) ){
+                    case EVT_DATA_RECEIVED:
+                        mReceivedText.append( intent.getStringExtra( EVT_EXTRA_DATA ) + "\n" );
+                        break;
+
+                    case EVT_CONNECTED:
+                        mSendButton.setEnabled( true );
+                        break;
+
+                    case EVT_DISCONNECTED:
+                        mSendButton.setEnabled( false );
+                        break;
+                }
             }
-        } );
+        };
+
+        LocalBroadcastManager.getInstance( getActivity() ).registerReceiver( mBroadcastReceiver, new IntentFilter(
+                BTSERVICE_INTENT_FILTER ) );
 
         mSendButton = ( Button ) view.findViewById( R.id.btnSend );
-        mSendButton.setEnabled( mSPP.getServiceState() == BluetoothState.STATE_CONNECTED );
+        mSendButton.setEnabled( mSPP.isConnected() );
         mSendButton.setOnClickListener( new View.OnClickListener(){
             public void onClick( View v ){
                 if( mEditText.getText().length() != 0 ){
@@ -71,18 +92,6 @@ public class TerminalFragment extends Fragment{
             }
         } );
 
-        mSPP.setBluetoothConnectionListener( new BluetoothListener.ConnectionListenerAdapter(){
-            @Override
-            public void onDeviceConnected( String name, String address ){
-                mSendButton.setEnabled( true );
-            }
-
-            @Override
-            public void onDeviceDisconnected(){
-                mSendButton.setEnabled( false );
-            }
-
-        } );
 
         return view;
     }
@@ -97,6 +106,7 @@ public class TerminalFragment extends Fragment{
 
     @Override
     public void onDestroyView(){
+        LocalBroadcastManager.getInstance( getActivity() ).unregisterReceiver( mBroadcastReceiver );
         Log.d( "lala", "on destroy view" );
         super.onDestroyView();
     }

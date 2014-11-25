@@ -19,32 +19,36 @@ package ch.eiafr.hugginess.myspp;
 
 public class BluetoothState {
     // Constants that indicate the current connection state
+    public static final int STATE_UNAVAILABLE = -1; // bluetooth turned off
     public static final int STATE_NONE = 0;       	// we're doing nothing
-    public static final int STATE_LISTEN = 1;     	// now listening for incoming connections
     public static final int STATE_CONNECTING = 2; 	// now initiating an outgoing connection
     public static final int STATE_CONNECTED = 3;  	// now connected to a remote device
-    public static final int STATE_NULL = -1;  	 	// now service is null
 
-    // Message types sent from the BluetoothChatService Handler
-    public static final int MESSAGE_STATE_CHANGE = 1;
-    public static final int MESSAGE_READ = 2;
-    public static final int MESSAGE_WRITE = 3;
-    public static final int MESSAGE_DEVICE_NAME = 4;
-    public static final int MESSAGE_TOAST = 5;
-    
     // Intent request codes
     public static final int REQUEST_CONNECT_DEVICE = 384;
     public static final int REQUEST_ENABLE_BT = 385;
 
-    // Key names received from the BluetoothChatService Handler
-    public static final String DEVICE_NAME = "device_name";
-    public static final String DEVICE_ADDRESS = "device_address";
-    public static final String TOAST = "toast";
-    
+    // type of the other device (to choose the correct UUID)
     public static final boolean DEVICE_ANDROID = true;
     public static final boolean DEVICE_OTHER = false;
     
     // Return Intent extra
-    public static String EXTRA_DEVICE_ADDRESS = "device_address";
+    public static final String EXTRA_DEVICE_ADDRESS = "device_address";
     
+    // Broadcast actions - intent filter
+    public static final String BTSERVICE_INTENT_FILTER = "BTService";
+
+    public static final String EVT_STATE_CHANGED = "evt_state_changed";
+
+    public static final String EXTRA_EVT_TYPE = "extra_evt_type";
+    public static final String EVT_CONNECTED = "evt_connected";
+    public static final String EVT_DISCONNECTED = "evt_disconnected";
+    public static final String EVT_CONNECTION_FAILED = "evt_connection_failed";
+
+    public static final String EVT_DATA_RECEIVED = "evt_data_received";
+
+    // String extra some events
+    public static final String EVT_EXTRA_DNAME = "extra_device_name";
+    public static final String EVT_EXTRA_DADDR = "extra_device_address";
+    public static final String EVT_EXTRA_DATA = "extra_data_received";
 }
