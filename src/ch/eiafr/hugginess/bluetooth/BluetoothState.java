@@ -15,16 +15,16 @@
  */
 
 
-package ch.eiafr.hugginess.myspp;
+package ch.eiafr.hugginess.bluetooth;
 
 public class BluetoothState {
     // Constants that indicate the current connection state
-    public static final int STATE_UNAVAILABLE = -1; // bluetooth turned off
+    public static final int STATE_TURNED_OFF = -1; // bluetooth turned off
     public static final int STATE_NONE = 0;       	// we're doing nothing
     public static final int STATE_CONNECTING = 2; 	// now initiating an outgoing connection
     public static final int STATE_CONNECTED = 3;  	// now connected to a remote device
 
-    // Intent request codes
+    // Intent request codes    TODO
     public static final int REQUEST_CONNECT_DEVICE = 384;
     public static final int REQUEST_ENABLE_BT = 385;
 
@@ -32,23 +32,40 @@ public class BluetoothState {
     public static final boolean DEVICE_ANDROID = true;
     public static final boolean DEVICE_OTHER = false;
     
-    // Return Intent extra
+    // Return Intent extra from DeviceList
     public static final String EXTRA_DEVICE_ADDRESS = "device_address";
-    
-    // Broadcast actions - intent filter
-    public static final String BTSERVICE_INTENT_FILTER = "BTService";
 
-    public static final String EVT_STATE_CHANGED = "evt_state_changed";
-
+    // ----------------------------------------------------
+    // extra for all broadcasts sent from the service
     public static final String EXTRA_EVT_TYPE = "extra_evt_type";
+    // intent filter to use for the broadcasts
+    public static final String BTSERVICE_INTENT_FILTER = "Hugginess-BTService";
+
+
+    // bt adapter-related events
+    public static final String EVT_BT_TURNED_ON = "evt_turned_on";
+    public static final String EVT_BT_TURNED_OFF = "evt_turned_off";
+    // connection-related events
     public static final String EVT_CONNECTED = "evt_connected";
     public static final String EVT_DISCONNECTED = "evt_disconnected";
     public static final String EVT_CONNECTION_FAILED = "evt_connection_failed";
-
+    // data-related events
     public static final String EVT_DATA_RECEIVED = "evt_data_received";
 
     // String extra some events
     public static final String EVT_EXTRA_DNAME = "extra_device_name";
     public static final String EVT_EXTRA_DADDR = "extra_device_address";
     public static final String EVT_EXTRA_DATA = "extra_data_received";
+
+
+    // ---------------------------------------------------- HuggiService only
+
+    // acks
+    public static final String EVT_ACK_RECEIVED = "evt_ack";
+    public static final String EVT_EXTRA_ACK_CMD = "extra_ack_cmd";
+    public static final String EVT_EXTRA_ACK_STATUS = "extra_ack_status";
+
+    // hugs
+    public static final String EVT_HUGS_RECEIVED = "evt_hugs_received";
+    public static final String EVT_EXTRA_HUGS_CNT = "extra_hugs_cnt";
 }

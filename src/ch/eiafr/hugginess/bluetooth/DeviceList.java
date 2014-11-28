@@ -15,7 +15,7 @@
  */
 
 
-package ch.eiafr.hugginess.myspp;
+package ch.eiafr.hugginess.bluetooth;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
