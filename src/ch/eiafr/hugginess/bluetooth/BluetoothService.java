@@ -179,7 +179,7 @@ public class BluetoothService extends Service {
     }
 
 
-    public void disconnect(){
+    public synchronized void disconnect(){
         stopThreads();
         notifyNewState( STATE_NONE );
     }

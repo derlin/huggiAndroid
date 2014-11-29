@@ -68,4 +68,22 @@ public class BluetoothState {
     // hugs
     public static final String EVT_HUGS_RECEIVED = "evt_hugs_received";
     public static final String EVT_EXTRA_HUGS_CNT = "extra_hugs_cnt";
+    public static final String EVT_EXTRA_HUGS_LIST = "extra_new_hugs";
+
+
+    // available commands
+    public static final String DATA_PREFIX = "@";
+    public static final String DATA_SEP = "!";
+
+    public static final String ACK_PREFIX = "#";
+    public static final String ACK_OK = ACK_PREFIX + "#";
+    public static final String ACK_NOK = ACK_PREFIX + "?";
+
+    public static final String CMD_PREFIX = "$";
+    public static final char CMD_ECHO = 'E';
+    public static final char CMD_SET_ID = 'I';
+    public static final char CMD_SET_DATA = 'D';
+    public static final char CMD_SEND_HUGS = 'H';
+    public static final char CMD_CALIBRATE = 'C';
+    public static final char CMD_SLEEP = 'S';
 }
