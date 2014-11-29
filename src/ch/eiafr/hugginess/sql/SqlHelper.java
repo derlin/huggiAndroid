@@ -33,7 +33,7 @@ public class SqlHelper extends SQLiteOpenHelper{
     static final String HG_COL_ID_REF = "hugger_id";
 
     // dates format
-    static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     // create statements
     private static final String CREATE_HUGGERS_TABLE = String.format(//

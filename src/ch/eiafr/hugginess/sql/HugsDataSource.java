@@ -78,7 +78,7 @@ public class HugsDataSource{
         //values.put( HG_COL_ID, null );
         values.put( HG_COL_ID_REF, hug.getHuggerID() );
         values.put( HG_COL_DUR, hug.getDuration() );
-        values.put( HG_COL_DATE, dateFormat.format( hug.getDate()) );
+        values.put( HG_COL_DATE, DATE_FORMAT.format( hug.getDate()) );
         values.put( HG_COL_DATA, hug.getData() );
         return values;
     }
@@ -91,7 +91,7 @@ public class HugsDataSource{
         hug.setId( cursor.getInt( i++ ) );
         hug.setHuggerID( cursor.getString( i++ ) );
         try{
-            hug.setDate( dateFormat.parse( cursor.getString( i++ ) ) );
+            hug.setDate( DATE_FORMAT.parse( cursor.getString( i++ ) ) );
         }catch( ParseException e ){
             e.printStackTrace();
         }

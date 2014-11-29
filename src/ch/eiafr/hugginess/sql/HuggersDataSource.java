@@ -92,7 +92,7 @@ public class HuggersDataSource{
     }
 
     static Cursor findHugger( SQLiteDatabase db, String id ){
-        return db.query( HUGGERS_TABLE, ALL_COLUMNS, HR_COL_ID + " = " + id, null, null, null, null );
+        return db.query( HUGGERS_TABLE, ALL_COLUMNS, HR_COL_ID + " =?", new String[]{ id }, null, null, null );
     }
 
     static boolean huggerExists(SQLiteDatabase db, String id){
