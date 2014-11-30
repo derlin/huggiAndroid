@@ -29,12 +29,6 @@
         android:layout_height="wrap_content"
         android:text="get hugs" />
 
-    <ImageView
-        android:id="@+id/photo"
-        android:layout_toEndOf="@id/sleep_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/defaultavatar" />
 
     <TextView
         android:id="@+id/tabtextview"

@@ -22,6 +22,8 @@ import ch.eiafr.hugginess.HuggiBTActivity;
 import ch.eiafr.hugginess.bluetooth.DeviceList;
 import ch.eiafr.hugginess.bluetooth.HuggiBluetoothService;
 import ch.eiafr.hugginess.listtests.ListFragment;
+import ch.eiafr.hugginess.widgets.AnimatedSyncImageView;
+import ch.eiafr.hugginess.widgets.TabsAdapter;
 
 import static ch.eiafr.hugginess.bluetooth.BluetoothState.*;
 
@@ -36,6 +38,7 @@ public class TabTestActivity extends FragmentActivity implements HuggiBTActivity
     private TabsAdapter mTabsAdapter;
     private TextView mTextStatus;
     private Menu menu;
+    private AnimatedSyncImageView mAnim;
     private ActionBar mActionBar;
 
     HuggiBluetoothService mSPP;
@@ -59,6 +62,7 @@ public class TabTestActivity extends FragmentActivity implements HuggiBTActivity
             mSPP = null;
         }
     };
+
 
     // ----------------------------------------------------
 
@@ -89,7 +93,9 @@ public class TabTestActivity extends FragmentActivity implements HuggiBTActivity
                         break;
 
                     case STATE_NONE:
+                        mAnim.start();
                         mSPP.connect( "00:06:66:68:18:1A" );
+                        mTextStatus.setEnabled( false );
                         break;
                 }
             }
@@ -151,6 +157,7 @@ public class TabTestActivity extends FragmentActivity implements HuggiBTActivity
     public boolean onCreateOptionsMenu( Menu menu ){
         this.menu = menu;
         getMenuInflater().inflate( R.menu.menu, menu );
+        mAnim = ( AnimatedSyncImageView ) menu.findItem( R.id.menu_spiner_anim ).getActionView();
         return true;
     }
 
@@ -214,7 +221,12 @@ public class TabTestActivity extends FragmentActivity implements HuggiBTActivity
     BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive( Context context, Intent intent ){
+
+            mTextStatus.setEnabled( true );
+            mAnim.stop();
+
             switch( intent.getStringExtra( EXTRA_EVT_TYPE ) ){
+
                 case EVT_BT_TURNED_ON:
                     menu.findItem( R.id.menu_disconnect ).setVisible( false );
                     menu.findItem( R.id.menu_connect ).setVisible( true );
@@ -239,6 +251,7 @@ public class TabTestActivity extends FragmentActivity implements HuggiBTActivity
                     mTextStatus.setTextColor( Color.WHITE );
                     mTextStatus.setText( "Status : Connected to " + intent.getStringExtra( EVT_EXTRA_DNAME
                     ) );
+
                     break;
 
 
@@ -258,11 +271,13 @@ public class TabTestActivity extends FragmentActivity implements HuggiBTActivity
 
                     mTextStatus.setTextColor( Color.RED );
                     mTextStatus.setText( "Status : Connection failed" );
+
                     break;
 
                 case EVT_HUGS_RECEIVED:
                     int cnt = intent.getIntExtra( EVT_EXTRA_HUGS_CNT, 0 );
                     Toast.makeText( TabTestActivity.this, "Received " + cnt + " new hugs", Toast.LENGTH_SHORT ).show();
+
                     break;
 
                 case EVT_ACK_RECEIVED:
@@ -271,6 +286,8 @@ public class TabTestActivity extends FragmentActivity implements HuggiBTActivity
                     Toast.makeText( TabTestActivity.this, "Cmd " + cmd + " : " + (ok ? "ack" : "nak"), Toast.LENGTH_SHORT ).show();
                     break;
             }
+
+
         }
     };
 

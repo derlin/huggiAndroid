@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/menu_spiner_anim"
+        android:actionViewClass="ch.eiafr.hugginess.widgets.AnimatedSyncImageView"
+        android:showAsAction="always" />
+
     <item
         android:id="@+id/menu_disconnect"
         android:orderInCategory="100"

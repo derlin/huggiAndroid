@@ -1,4 +1,4 @@
-package ch.eiafr.hugginess.tests;
+package ch.eiafr.hugginess.widgets;
 
 /**
  * @author: Lucy Linder
