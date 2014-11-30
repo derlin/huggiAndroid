@@ -20,7 +20,8 @@ import static ch.eiafr.hugginess.sql.SqlHelper.*;
 public class HugsDataSource{
     private SQLiteDatabase db;
     private SqlHelper helper;
-    private static final String[] ALL_COLUMNS = new String[]{ HG_COL_ID, HG_COL_ID_REF, HG_COL_DATE, HG_COL_DUR, HG_COL_DATA };
+    private static final String[] ALL_COLUMNS = new String[]{ HG_COL_ID, HG_COL_ID_REF, HG_COL_DATE, HG_COL_DUR,
+            HG_COL_DATA };
 
 
     public HugsDataSource( Context context ){
@@ -28,8 +29,9 @@ public class HugsDataSource{
     }
 
 
-    public void open() throws SQLException{
+    public HugsDataSource open() throws SQLException{
         db = helper.getWritableDatabase();
+        return this;
     }
 
 
@@ -44,7 +46,7 @@ public class HugsDataSource{
 
 
     public boolean addHug( Hug hug ){
-        if(!HuggersDataSource.huggerExists( db, hug.getHuggerID() )){
+        if( !HuggersDataSource.huggerExists( db, hug.getHuggerID() ) ){
             Hugger hugger = new Hugger();
             hugger.setId( hug.getHuggerID() );
             HuggersDataSource.addHugger( db, hugger );
@@ -56,7 +58,8 @@ public class HugsDataSource{
     public List<Hug> getHugs(){
         List<Hug> hugs = new ArrayList<>();
 
-        Cursor cursor = db.query( HUGS_TABLE, null, null, null, null, null, null );
+        Cursor cursor = db.query( HUGS_TABLE, null, null, null, null, null, //
+                String.format( "%s, %s DESC", HG_COL_DATE, HG_COL_DUR ) );
         cursor.moveToFirst();
 
         while( !cursor.isAfterLast() ){
@@ -73,18 +76,19 @@ public class HugsDataSource{
         return ( int ) DatabaseUtils.queryNumEntries( db, HUGS_TABLE );
     }
 
+
     private ContentValues hugToContentValues( Hug hug ){
         ContentValues values = new ContentValues();
         //values.put( HG_COL_ID, null );
         values.put( HG_COL_ID_REF, hug.getHuggerID() );
         values.put( HG_COL_DUR, hug.getDuration() );
-        values.put( HG_COL_DATE, DATE_FORMAT.format( hug.getDate()) );
+        values.put( HG_COL_DATE, DATE_FORMAT.format( hug.getDate() ) );
         values.put( HG_COL_DATA, hug.getData() );
         return values;
     }
 
 
-    private Hug cursorToHug( Cursor cursor ){
+    public static Hug cursorToHug( Cursor cursor ){
         Hug hug = new Hug();
         int i = 0;
 

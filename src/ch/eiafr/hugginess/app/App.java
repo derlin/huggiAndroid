@@ -1,6 +1,7 @@
 package ch.eiafr.hugginess.app;
 
 import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
 import ch.eiafr.hugginess.bluetooth.HuggiBluetoothService;
 
@@ -11,7 +12,10 @@ import ch.eiafr.hugginess.bluetooth.HuggiBluetoothService;
  */
 public class App extends Application {
 
+    static Context appContext;
+
     public void start() {
+        appContext = this.getApplicationContext();
         // mContext is defined upper in code, I think it is not necessary to explain what is it
 //        Intent i = new Intent( this, BluetoothSPP.class );
         Intent i = new Intent( this, HuggiBluetoothService.class );
@@ -20,6 +24,11 @@ public class App extends Application {
 
     public void stop() {
         this.stopService( new Intent( this, HuggiBluetoothService.class ) );
+    }
+
+
+    public static Context getAppContext(){
+        return appContext;
     }
 
 

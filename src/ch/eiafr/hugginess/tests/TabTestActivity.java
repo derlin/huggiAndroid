@@ -14,21 +14,23 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 import ch.eiafr.hugginess.R;
-import ch.eiafr.hugginess.SPPActivity;
-import ch.eiafr.hugginess.myspp.BluetoothService;
-import ch.eiafr.hugginess.myspp.DeviceList;
+import ch.eiafr.hugginess.HuggiBTActivity;
+import ch.eiafr.hugginess.bluetooth.DeviceList;
+import ch.eiafr.hugginess.bluetooth.HuggiBluetoothService;
+import ch.eiafr.hugginess.listtests.ListFragment;
 
-import static ch.eiafr.hugginess.myspp.BluetoothState.*;
+import static ch.eiafr.hugginess.bluetooth.BluetoothState.*;
 
 
 /**
  * @author: Lucy Linder
  * @date: 22.11.2014
  */
-public class TabTestActivity extends FragmentActivity implements SPPActivity {
+public class TabTestActivity extends FragmentActivity implements HuggiBTActivity{
 
     private ViewPager mViewPager;
     private TabsAdapter mTabsAdapter;
@@ -36,7 +38,7 @@ public class TabTestActivity extends FragmentActivity implements SPPActivity {
     private Menu menu;
     private ActionBar mActionBar;
 
-    BluetoothService mSPP;
+    HuggiBluetoothService mSPP;
 
     //-------------------------------------------------------------
 
@@ -45,8 +47,8 @@ public class TabTestActivity extends FragmentActivity implements SPPActivity {
         public void onServiceConnected( ComponentName name, IBinder binder ){
             Log.d( "lala", "onServiceConnected" );
             if( mSPP == null ){
-                mSPP = ( ( BluetoothService.BTBinder ) binder ).getService();
-                onBTServiceBounded();
+                mSPP = ( ( HuggiBluetoothService.BTBinder ) binder ).getService();
+                onBTServiceBonded();
             }
         }
 
@@ -72,6 +74,27 @@ public class TabTestActivity extends FragmentActivity implements SPPActivity {
         mActionBar.setNavigationMode( ActionBar.NAVIGATION_MODE_TABS );
         mActionBar.setDisplayOptions( 0, ActionBar.DISPLAY_SHOW_TITLE );
 
+        mTextStatus.setOnClickListener( new View.OnClickListener(){
+            @Override
+            public void onClick( View view ){
+                if( mSPP == null ) return;
+
+                switch( mSPP.getState() ){
+                    case STATE_TURNED_OFF:
+                        mSPP.enable();
+                        break;
+
+                    case STATE_CONNECTED:
+                        mSPP.disconnect();
+                        break;
+
+                    case STATE_NONE:
+                        mSPP.connect( "00:06:66:68:18:1A" );
+                        break;
+                }
+            }
+        } );
+
     }
 
 
@@ -88,7 +111,7 @@ public class TabTestActivity extends FragmentActivity implements SPPActivity {
     @Override
     public void onStart(){
         // mContext is defined upper in code, I think it is not necessary to explain what is it
-        Intent i = new Intent( this, BluetoothService.class );
+        Intent i = new Intent( this, HuggiBluetoothService.class );
         this.bindService( i, mServiceConnection, 0); //Context.BIND_AUTO_CREATE );
 
         super.onStart();
@@ -175,7 +198,7 @@ public class TabTestActivity extends FragmentActivity implements SPPActivity {
         }else if( requestCode == REQUEST_ENABLE_BT ){
             if( resultCode == Activity.RESULT_OK ){
                 mSPP.setDeviceTargetType( DEVICE_ANDROID );
-                Toast.makeText( this, "Bluetooth enables", Toast.LENGTH_SHORT ).show();
+                Toast.makeText( this, "Bluetooth enabled", Toast.LENGTH_SHORT ).show();
             }else{
                 Toast.makeText( getApplicationContext(), "Bluetooth was not enabled.", Toast.LENGTH_SHORT )
                         .show();
@@ -192,6 +215,22 @@ public class TabTestActivity extends FragmentActivity implements SPPActivity {
         @Override
         public void onReceive( Context context, Intent intent ){
             switch( intent.getStringExtra( EXTRA_EVT_TYPE ) ){
+                case EVT_BT_TURNED_ON:
+                    menu.findItem( R.id.menu_disconnect ).setVisible( false );
+                    menu.findItem( R.id.menu_connect ).setVisible( true );
+
+                    mTextStatus.setText( "Status : no connected" );
+                    mTextStatus.setTextColor( Color.RED );
+                    break;
+
+                case EVT_BT_TURNED_OFF:
+                    menu.findItem( R.id.menu_disconnect ).setVisible( false );
+                    menu.findItem( R.id.menu_connect ).setVisible( false );
+
+                    mTextStatus.setText( "Status : offline" );
+                    mTextStatus.setTextColor( Color.RED );
+                    break;
+
                 case EVT_CONNECTED:
                     Toast.makeText( TabTestActivity.this, "Status : Connected", Toast.LENGTH_SHORT ).show();
                     menu.findItem( R.id.menu_connect ).setVisible( false );
@@ -201,6 +240,7 @@ public class TabTestActivity extends FragmentActivity implements SPPActivity {
                     mTextStatus.setText( "Status : Connected to " + intent.getStringExtra( EVT_EXTRA_DNAME
                     ) );
                     break;
+
 
                 case EVT_DISCONNECTED:
                     Toast.makeText( TabTestActivity.this, "Status : Disconnected", Toast.LENGTH_SHORT )
@@ -219,12 +259,23 @@ public class TabTestActivity extends FragmentActivity implements SPPActivity {
                     mTextStatus.setTextColor( Color.RED );
                     mTextStatus.setText( "Status : Connection failed" );
                     break;
+
+                case EVT_HUGS_RECEIVED:
+                    int cnt = intent.getIntExtra( EVT_EXTRA_HUGS_CNT, 0 );
+                    Toast.makeText( TabTestActivity.this, "Received " + cnt + " new hugs", Toast.LENGTH_SHORT ).show();
+                    break;
+
+                case EVT_ACK_RECEIVED:
+                    char cmd = intent.getCharExtra( EVT_EXTRA_ACK_CMD, '-' );
+                    boolean ok = intent.getBooleanExtra( EVT_EXTRA_ACK_STATUS, false );
+                    Toast.makeText( TabTestActivity.this, "Cmd " + cmd + " : " + (ok ? "ack" : "nak"), Toast.LENGTH_SHORT ).show();
+                    break;
             }
         }
     };
 
 
-    private void onBTServiceBounded(){
+    private void onBTServiceBonded(){
 
         // check that the bluetooth is on
         if( !mSPP.isBluetoothEnabled() ){
@@ -244,6 +295,7 @@ public class TabTestActivity extends FragmentActivity implements SPPActivity {
         if( mTabsAdapter == null ){
             mTabsAdapter = new TabsAdapter( TabTestActivity.this, mViewPager );
             mTabsAdapter.addTab( mActionBar.newTab().setText( "Simple" ), DummyFragment.class, null );
+            mTabsAdapter.addTab( mActionBar.newTab().setText( "List" ), ListFragment.class, null );
             mTabsAdapter.addTab( mActionBar.newTab().setText( "Terminal" ), TerminalFragment.class, null );
 
             int tabIndex = PreferenceManager.getDefaultSharedPreferences( this ).getInt( "tab", 0 );
@@ -258,7 +310,7 @@ public class TabTestActivity extends FragmentActivity implements SPPActivity {
 
 
     @Override
-    public BluetoothService getSPP(){
+    public HuggiBluetoothService getHuggiService(){
         return mSPP;
     }
 } // end class

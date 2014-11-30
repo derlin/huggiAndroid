@@ -9,6 +9,8 @@ import android.database.sqlite.SQLiteDatabase;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static ch.eiafr.hugginess.sql.SqlHelper.*;
 
@@ -49,8 +51,6 @@ public class HuggersDataSource{
     }
 
 
-
-
     public List<Hugger> getHuggers(){
         List<Hugger> huggers = new ArrayList<>();
 
@@ -66,17 +66,36 @@ public class HuggersDataSource{
         return huggers;
     }
 
+
+    public Map<String, Hugger> getHuggersMap(){
+        Map<String, Hugger> huggers = new TreeMap<>();
+
+        Cursor cursor = db.query( HUGGERS_TABLE, ALL_COLUMNS, null, null, null, null, null );
+        cursor.moveToFirst();
+
+        while( !cursor.isAfterLast() ){
+            Hugger hugger = cursorToHugger( cursor );
+            huggers.put( hugger.getId(), hugger );
+            cursor.moveToNext();
+        }//end while
+        cursor.close();
+
+        return huggers;
+    }
+
+
     public boolean huggerExists( String id ){
         return huggerExists( db, id );
     }
 
+
     public int getHuggersCount(){
-        return ( int ) DatabaseUtils.queryNumEntries(db, HUGGERS_TABLE);
+        return ( int ) DatabaseUtils.queryNumEntries( db, HUGGERS_TABLE );
     }
 
 
-
     // ----------------------------------------------------
+
 
     private static ContentValues huggerToContentValues( Hugger hugger ){
         ContentValues values = new ContentValues();
@@ -91,16 +110,19 @@ public class HuggersDataSource{
         return hugger;
     }
 
+
     static Cursor findHugger( SQLiteDatabase db, String id ){
         return db.query( HUGGERS_TABLE, ALL_COLUMNS, HR_COL_ID + " =?", new String[]{ id }, null, null, null );
     }
 
-    static boolean huggerExists(SQLiteDatabase db, String id){
+
+    static boolean huggerExists( SQLiteDatabase db, String id ){
         Cursor cursor = findHugger( db, id );
         boolean ret = cursor.getCount() > 0;
         cursor.close();
         return ret;
     }
+
 
     static boolean addHugger( SQLiteDatabase db, Hugger hugger ){
         return db.insert( HUGGERS_TABLE, null, huggerToContentValues( hugger ) ) > 0;

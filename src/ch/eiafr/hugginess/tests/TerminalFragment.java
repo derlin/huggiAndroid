@@ -16,11 +16,13 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import ch.eiafr.hugginess.HuggiBTActivity;
 import ch.eiafr.hugginess.R;
-import ch.eiafr.hugginess.SPPActivity;
-import ch.eiafr.hugginess.myspp.BluetoothService;
+import ch.eiafr.hugginess.bluetooth.BluetoothService;
 
-import static ch.eiafr.hugginess.myspp.BluetoothState.*;
+import static ch.eiafr.hugginess.bluetooth.BluetoothState.*;
+import static ch.eiafr.hugginess.bluetooth.BluetoothState.EVT_CONNECTED;
+import static ch.eiafr.hugginess.bluetooth.BluetoothState.EVT_DISCONNECTED;
 
 /**
  * @author: Lucy Linder
@@ -32,14 +34,37 @@ public class TerminalFragment extends Fragment{
     private TextView mReceivedText;
     private Button mSendButton;
     private EditText mEditText;
-    private BroadcastReceiver mBroadcastReceiver;
+
+    private StringBuilder text = new StringBuilder(  );
 
     Menu menu;
 
+    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver(){
+        @Override
+        public void onReceive( Context context, Intent intent ){
+            switch( intent.getStringExtra( EXTRA_EVT_TYPE ) ){
+                case EVT_DATA_RECEIVED:
+                    String newline = intent.getStringExtra( EVT_EXTRA_DATA ) + "\n";
+                    text.append( newline );
+                    if(mReceivedText != null) mReceivedText.append( newline );
+                    break;
+
+                case EVT_CONNECTED:
+                    if(mSendButton != null) mSendButton.setEnabled( true );
+                    break;
+
+                case EVT_DISCONNECTED:
+                    if(mSendButton != null) mSendButton.setEnabled( false );
+                    break;
+            }
+        }
+    };
 
     @Override
     public void onCreate( Bundle savedInstanceState ){
         Log.d( "lala", "on create" );
+        LocalBroadcastManager.getInstance( getActivity() ).registerReceiver( mBroadcastReceiver, new IntentFilter(
+                BTSERVICE_INTENT_FILTER ) );
         super.onCreate( savedInstanceState );
     }
 
@@ -55,32 +80,11 @@ public class TerminalFragment extends Fragment{
         mEditText = ( EditText ) view.findViewById( R.id.etMessage );
         mReceivedText = ( TextView ) view.findViewById( R.id.textRead );
         mReceivedText.setMovementMethod( new ScrollingMovementMethod() );
+        mReceivedText.setText( text.toString() );
 
 
-        mSPP = ( ( SPPActivity ) getActivity() ).getSPP();
+        mSPP = ( ( HuggiBTActivity ) getActivity() ).getHuggiService();
 
-
-        mBroadcastReceiver = new BroadcastReceiver(){
-            @Override
-            public void onReceive( Context context, Intent intent ){
-                switch( intent.getStringExtra( EXTRA_EVT_TYPE ) ){
-                    case EVT_DATA_RECEIVED:
-                        mReceivedText.append( intent.getStringExtra( EVT_EXTRA_DATA ) + "\n" );
-                        break;
-
-                    case EVT_CONNECTED:
-                        mSendButton.setEnabled( true );
-                        break;
-
-                    case EVT_DISCONNECTED:
-                        mSendButton.setEnabled( false );
-                        break;
-                }
-            }
-        };
-
-        LocalBroadcastManager.getInstance( getActivity() ).registerReceiver( mBroadcastReceiver, new IntentFilter(
-                BTSERVICE_INTENT_FILTER ) );
 
         mSendButton = ( Button ) view.findViewById( R.id.btnSend );
         mSendButton.setEnabled( mSPP.isConnected() );
@@ -106,7 +110,6 @@ public class TerminalFragment extends Fragment{
 
     @Override
     public void onDestroyView(){
-        LocalBroadcastManager.getInstance( getActivity() ).unregisterReceiver( mBroadcastReceiver );
         Log.d( "lala", "on destroy view" );
         super.onDestroyView();
     }
@@ -114,6 +117,7 @@ public class TerminalFragment extends Fragment{
 
     @Override
     public void onDestroy(){
+        LocalBroadcastManager.getInstance( getActivity() ).unregisterReceiver( mBroadcastReceiver );
         Log.d( "lala", "ondestroy" );
         super.onDestroy();
     }

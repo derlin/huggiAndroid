@@ -14,6 +14,7 @@ public class Hug implements Serializable{
     private Date date;
     private String data;
 
+
     public int getId(){
         return id;
     }
@@ -49,9 +50,15 @@ public class Hug implements Serializable{
     }
 
 
+    public String getStringDate(){
+        return SqlHelper.DATE_FORMAT.format( date );
+    }
+
+
     public void setDate( Date date ){
         this.date = date;
     }
+
 
     public String getData(){
         return data;
@@ -66,17 +73,46 @@ public class Hug implements Serializable{
     // ----------------------------------------------------
 
 
+    @Override
+    public boolean equals( Object o ){
+        if( this == o ) return true;
+        if( o == null || getClass() != o.getClass() ) return false;
+
+        Hug hug = ( Hug ) o;
+
+        if( duration != hug.duration ) return false;
+        if( id != hug.id ) return false;
+        if( !date.equals( hug.date ) ) return false;
+        if( !huggerID.equals( hug.huggerID ) ) return false;
+
+        return true;
+    }
+
+
+    @Override
+    public int hashCode(){
+        int result = id;
+        result = 31 * result + huggerID.hashCode();
+        result = 31 * result + duration;
+        result = 31 * result + date.hashCode();
+        return result;
+    }
+
+
+    // ----------------------------------------------------
+
+
     public static Hug parseHug( String s ){
 
         String[] split = s.split( "!" );
-        if(!split[0].equals("@H") || split.length < 4 ){
+        if( !split[ 0 ].equals( "@H" ) || split.length < 4 ){
             return null;
         }
 
         Hug hug = new Hug();
-        hug.setHuggerID( split[1] ); // 0 is @H
-        hug.setData( split[2] );
-        hug.setDuration( Integer.parseInt( split[3]) );
+        hug.setHuggerID( split[ 1 ] ); // 0 is @H
+        hug.setData( split[ 2 ] );
+        hug.setDuration( Integer.parseInt( split[ 3 ] ) );
         hug.setDate( new Date() );
 
         return hug;
