@@ -18,19 +18,19 @@ public class SqlHelper extends SQLiteOpenHelper{
 
     // tables
     private static final String HUGS_INDEX = "hugs_index";
-    static final String HUGGERS_TABLE = "huggers";
-    static final String HUGS_TABLE = "hugs";
+    public static final String HUGGERS_TABLE = "huggers";
+    public static final String HUGS_TABLE = "hugs";
 
     // huggers table columns
-    static final String HR_COL_ID = "hr_id";
-    static final String HR_COL_ID_TYPE = "TEXT";
+    public static final String HR_COL_ID = "hr_id";
+    public static final String HR_COL_ID_TYPE = "TEXT";
 
     // hugs table columns
-    static final String HG_COL_ID = "hg_id";
-    static final String HG_COL_DATE = "date";
-    static final String HG_COL_DUR = "duration";
-    static final String HG_COL_DATA = "data";
-    static final String HG_COL_ID_REF = "hugger_id";
+    public static final String HG_COL_ID = "hg_id";
+    public static final String HG_COL_DATE = "date";
+    public static final String HG_COL_DUR = "duration";
+    public static final String HG_COL_DATA = "data";
+    public static final String HG_COL_ID_REF = "hugger_id";
 
     // dates format
     public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

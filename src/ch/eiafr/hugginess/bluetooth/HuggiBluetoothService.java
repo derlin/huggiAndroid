@@ -8,10 +8,7 @@ import ch.eiafr.hugginess.sql.Hug;
 import ch.eiafr.hugginess.sql.HugsDataSource;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 import static ch.eiafr.hugginess.bluetooth.BluetoothState.*;
 
@@ -19,23 +16,26 @@ import static ch.eiafr.hugginess.bluetooth.BluetoothState.*;
  * @author: Lucy Linder
  * @date: 28.11.2014
  */
-public class HuggiBluetoothService extends BluetoothService{
+public class HuggiBluetoothService extends BluetoothService {
 
+    private static final int MAX_DEQUE_SIZE = 30;
+    private ReceivedDataBuffer mReceivedDataBuffer = new ReceivedDataBuffer(MAX_DEQUE_SIZE);
 
     public List<Hug> hugBuffer = new ArrayList<>();
     private Timer timer = null;
 
     private IBinder myBinder = new BTBinder();
 
-    private static final long BT_TIMEOUT = 4000;
+    private static final long BT_TIMEOUT = 2400;
 
     // ----------------------------------------------------
 
-    public class BTBinder extends Binder{
+    public class BTBinder extends Binder {
         public HuggiBluetoothService getService(){
             return HuggiBluetoothService.this;
         }
     }//end class
+
 
     @Override
     public IBinder onBind( Intent arg0 ){
@@ -52,6 +52,10 @@ public class HuggiBluetoothService extends BluetoothService{
     @Override
     protected void notifyDataReceived( String data ){
 
+        synchronized( this ){
+            mReceivedDataBuffer.appendLine( data );
+        }
+
         if( data.startsWith( DATA_PREFIX + CMD_SEND_HUGS ) ){
             Hug hug = Hug.parseHug( data );
 
@@ -61,7 +65,7 @@ public class HuggiBluetoothService extends BluetoothService{
 
                 if( timer == null ){
                     timer = new Timer();
-                    timer.schedule( new TimerTask(){
+                    timer.schedule( new TimerTask() {
                         @Override
                         public void run(){
                             insertHugs();
@@ -80,9 +84,16 @@ public class HuggiBluetoothService extends BluetoothService{
 
     // ----------------------------------------------------
 
+    public String getLastReceivedData(){
+        synchronized( this ){
+            return mReceivedDataBuffer.getAllLines();
+        }
+    }
+    // ----------------------------------------------------
+
 
     public void executeCommand( char CMD, String data ){
-        send( String.format( "%s%s%s%s", CMD_PREFIX, CMD, DATA_PREFIX, data ) , true );
+        send( String.format( "%s%s%s%s", CMD_PREFIX, CMD, DATA_PREFIX, data ), true );
     }
 
 
@@ -179,5 +190,47 @@ public class HuggiBluetoothService extends BluetoothService{
         mBroadcastManager.sendBroadcast( i );
     }
 
+    //-------------------------------------------------------------
 
+    private static class ReceivedDataBuffer extends ArrayDeque<String> {
+        private int limit = -1;
+
+
+        public ReceivedDataBuffer( int limit ){
+            super();
+            this.limit = limit;
+        }
+
+
+        public void appendLine( String line ){
+            if(!line.endsWith( "\n" )) line += "\n";
+            if( limit > 0 ){
+                while( size() > limit ){
+                    removeFirst();
+                }//end while
+            }
+
+            addLast( line );
+        }
+
+
+        public String getAllLines(){
+            StringBuilder builder = new StringBuilder();
+            for( Iterator<String> iter = iterator(); iter.hasNext(); ){
+                builder.append( iter.next() );
+            }
+
+            return builder.toString();
+        }
+
+
+        public int getLimit(){
+            return limit;
+        }
+
+
+        public void setLimit( int limit ){
+            this.limit = limit;
+        }
+    }
 }//end class

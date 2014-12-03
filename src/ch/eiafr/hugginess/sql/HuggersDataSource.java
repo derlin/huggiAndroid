@@ -18,7 +18,7 @@ import static ch.eiafr.hugginess.sql.SqlHelper.*;
  * @author: Lucy Linder
  * @date: 26.11.2014
  */
-public class HuggersDataSource{
+public class HuggersDataSource implements AutoCloseable {
 
     private static final String[] ALL_COLUMNS = new String[]{ HR_COL_ID };
     private SQLiteDatabase db;
@@ -30,8 +30,15 @@ public class HuggersDataSource{
     }
 
 
-    public void open() throws SQLException{
+    public HuggersDataSource( Context context, boolean open ) throws SQLException{
+        helper = new SqlHelper( context );
+        open();
+    }
+
+
+    public HuggersDataSource open() throws SQLException{
         db = helper.getWritableDatabase();
+        return this;
     }
 
 
@@ -64,6 +71,15 @@ public class HuggersDataSource{
         cursor.close();
 
         return huggers;
+    }
+
+
+    public Hugger getHugger( String huggerId ){
+        Cursor cursor = findHugger( db, huggerId );
+        cursor.moveToFirst();
+        Hugger hugger = cursorToHugger( cursor );
+        cursor.close();
+        return hugger;
     }
 
 
@@ -104,19 +120,21 @@ public class HuggersDataSource{
     }
 
 
-    private static Hugger cursorToHugger( Cursor cursor ){
+    public static Hugger cursorToHugger( Cursor cursor ){
+        if( cursor.isAfterLast() ) return null;
         Hugger hugger = new Hugger();
-        hugger.setId( cursor.getString( 0 ) );
+        hugger.setId( cursor.getString( cursor.getColumnIndex( HR_COL_ID ) ) );
         return hugger;
     }
 
 
-    static Cursor findHugger( SQLiteDatabase db, String id ){
-        return db.query( HUGGERS_TABLE, ALL_COLUMNS, HR_COL_ID + " =?", new String[]{ id }, null, null, null );
+    public static Cursor findHugger( SQLiteDatabase db, String id ){
+        return db.query( HUGGERS_TABLE, ALL_COLUMNS, HR_COL_ID + " =?", new String[]{ id }, null, null,
+                null );
     }
 
 
-    static boolean huggerExists( SQLiteDatabase db, String id ){
+    public static boolean huggerExists( SQLiteDatabase db, String id ){
         Cursor cursor = findHugger( db, id );
         boolean ret = cursor.getCount() > 0;
         cursor.close();
@@ -124,7 +142,7 @@ public class HuggersDataSource{
     }
 
 
-    static boolean addHugger( SQLiteDatabase db, Hugger hugger ){
+    public static boolean addHugger( SQLiteDatabase db, Hugger hugger ){
         return db.insert( HUGGERS_TABLE, null, huggerToContentValues( hugger ) ) > 0;
     }
 

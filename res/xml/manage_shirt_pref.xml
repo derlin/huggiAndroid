@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <PreferenceCategory
+        android:title="Configuration"
+        android:summary="Configure your Huggi-Shirt behavior.">
+
+        <Preference
+            android:key="@string/pref_show_config"
+            android:title="Current configuration"
+            android:summary="View your Huggi-Shirt current configuration."
+            android:persistent="false" />
+
+        <EditTextPreference
+            android:key="@string/pref_sent_data"
+            android:summary="Choose what is sent during a hug."
+            android:persistent="false"
+            android:maxLength="50"
+            android:title="Data" />
+
+    </PreferenceCategory>
+
+
+    <!--________________________-->
+
+    <PreferenceCategory
+        android:title="Commands"
+        android:summary="Send commands to your Huggi-shirt.">
+
+        <Preference
+            android:key="@string/pref_calibrate"
+            android:summary="Recalibrate the pressure sensor"
+            android:persistent="false"
+            android:title="Calibrate" />
+
+        <Preference
+            android:key="@string/pref_sleep"
+            android:persistent="false"
+            android:summary="Put your shirt to sleep"
+            android:title="Sleep" />
+
+        <Preference
+            android:key="@string/pref_get_hug"
+            android:persistent="false"
+            android:summary="Manually fetch new hugs"
+            android:title="Force sync" />
+
+    </PreferenceCategory>
+
+
+</PreferenceScreen>

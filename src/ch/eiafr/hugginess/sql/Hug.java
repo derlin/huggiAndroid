@@ -1,6 +1,7 @@
 package ch.eiafr.hugginess.sql;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -13,6 +14,7 @@ public class Hug implements Serializable{
     private int duration;
     private Date date;
     private String data;
+    public static final SimpleDateFormat PRETTY_DATE_FORMAT = new SimpleDateFormat("dd.MM.yy HH:mm");
 
 
     public int getId(){
@@ -39,6 +41,14 @@ public class Hug implements Serializable{
         return duration;
     }
 
+    public String getStringDuration(){
+        double seconds = duration * 0.001;
+        if(seconds < 60) return String.format( "%.2f s", seconds );
+        int minutes = ( int ) (seconds / 60);
+        int secs = ( int ) (seconds % 60);
+        return String.format( "%d.%d min", minutes, secs );
+    }
+
 
     public void setDuration( int duration ){
         this.duration = duration;
@@ -51,7 +61,7 @@ public class Hug implements Serializable{
 
 
     public String getStringDate(){
-        return SqlHelper.DATE_FORMAT.format( date );
+        return PRETTY_DATE_FORMAT.format( date );
     }
 
 

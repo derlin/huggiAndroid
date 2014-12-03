@@ -9,27 +9,22 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import ch.eiafr.hugginess.HuggiBTActivity;
 import ch.eiafr.hugginess.R;
-import ch.eiafr.hugginess.bluetooth.BluetoothService;
+import ch.eiafr.hugginess.bluetooth.HuggiBluetoothService;
 
 import static ch.eiafr.hugginess.bluetooth.BluetoothState.*;
-import static ch.eiafr.hugginess.bluetooth.BluetoothState.EVT_CONNECTED;
-import static ch.eiafr.hugginess.bluetooth.BluetoothState.EVT_DISCONNECTED;
 
 /**
  * @author: Lucy Linder
  * @date: 22.11.2014
  */
 public class TerminalFragment extends Fragment{
-    private BluetoothService mSPP;
+    private HuggiBluetoothService mSPP;
     private View view;
     private TextView mReceivedText;
     private Button mSendButton;
@@ -47,10 +42,12 @@ public class TerminalFragment extends Fragment{
                     String newline = intent.getStringExtra( EVT_EXTRA_DATA ) + "\n";
                     text.append( newline );
                     if(mReceivedText != null) mReceivedText.append( newline );
+                    //if(mSPP != null) mReceivedText.setText( mSPP.getLastReceivedData() );
                     break;
 
                 case EVT_CONNECTED:
                     if(mSendButton != null) mSendButton.setEnabled( true );
+                    mSPP.executeCommand( CMD_SEND_HUGS ); // auto fetch
                     break;
 
                 case EVT_DISCONNECTED:
@@ -63,9 +60,12 @@ public class TerminalFragment extends Fragment{
     @Override
     public void onCreate( Bundle savedInstanceState ){
         Log.d( "lala", "on create" );
-        LocalBroadcastManager.getInstance( getActivity() ).registerReceiver( mBroadcastReceiver, new IntentFilter(
-                BTSERVICE_INTENT_FILTER ) );
+        LocalBroadcastManager.getInstance( getActivity() ).registerReceiver( mBroadcastReceiver, new
+                IntentFilter( BTSERVICE_INTENT_FILTER ) );
+
         super.onCreate( savedInstanceState );
+
+
     }
 
 
@@ -80,14 +80,18 @@ public class TerminalFragment extends Fragment{
         mEditText = ( EditText ) view.findViewById( R.id.etMessage );
         mReceivedText = ( TextView ) view.findViewById( R.id.textRead );
         mReceivedText.setMovementMethod( new ScrollingMovementMethod() );
-        mReceivedText.setText( text.toString() );
 
+
+        registerForContextMenu( mReceivedText );
 
         mSPP = ( ( HuggiBTActivity ) getActivity() ).getHuggiService();
 
+        mReceivedText.setText( text.toString() );
+//        if(mSPP != null)
+//        mReceivedText.setText( mSPP.getLastReceivedData() );
 
         mSendButton = ( Button ) view.findViewById( R.id.btnSend );
-        mSendButton.setEnabled( mSPP.isConnected() );
+        mSendButton.setEnabled( mSPP != null && mSPP.isConnected() );
         mSendButton.setOnClickListener( new View.OnClickListener(){
             public void onClick( View v ){
                 if( mEditText.getText().length() != 0 ){
@@ -121,4 +125,25 @@ public class TerminalFragment extends Fragment{
         Log.d( "lala", "ondestroy" );
         super.onDestroy();
     }
-}//end class
+
+
+    /* *****************************************************************
+     * context menu
+     * ****************************************************************/
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+                                    ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        menu.setHeaderTitle("Options");
+        menu.add(0, v.getId(), 0, "Clear");
+    }
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        if (item.getTitle() == "Clear") {
+            mReceivedText.setText( "" );
+            return true;
+        }
+        return true;
+    }
+ }//end class

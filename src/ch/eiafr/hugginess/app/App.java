@@ -14,35 +14,27 @@ public class App extends Application {
 
     static Context appContext;
 
-    public void start() {
-        appContext = this.getApplicationContext();
-        // mContext is defined upper in code, I think it is not necessary to explain what is it
-//        Intent i = new Intent( this, BluetoothSPP.class );
-        Intent i = new Intent( this, HuggiBluetoothService.class );
-        this.startService( i );
-    }
-
-    public void stop() {
-        this.stopService( new Intent( this, HuggiBluetoothService.class ) );
-    }
-
 
     public static Context getAppContext(){
         return appContext;
     }
 
+    //-------------------------------------------------------------
 
     @Override
     public void onCreate(){
         super.onCreate();
-        start();
+
+        appContext = this.getApplicationContext();
+        Intent i = new Intent( this, HuggiBluetoothService.class );
+        this.startService( i );
 
     }
 
 
     @Override
     public void onTerminate(){
+        this.stopService( new Intent( this, HuggiBluetoothService.class ) );
         super.onTerminate();
-        stop();
     }
 }

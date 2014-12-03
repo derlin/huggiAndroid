@@ -8,7 +8,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Welcome to Hugginess"
-        android:id="@+id/textView"
+        android:id="@+id/fl_textview"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="30sp" />
 

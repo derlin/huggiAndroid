@@ -9,20 +9,26 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
-    <application android:label="@string/app_name" android:icon="@drawable/ic_launcher"
+    <application android:label="@string/app_name" android:icon="@drawable/pixelheart"
         android:name=".app.App">
 
-        <activity android:name="ch.eiafr.hugginess.app.Main" android:label="@string/app_name" />
+        <!--TODO allow landscape mode ?-->
 
-        <activity android:name=".bluetooth.DeviceList" />
+        <activity android:name=".bluetooth.DeviceList"
+            android:screenOrientation="portrait"/>
 
-        <activity android:name=".tests.TabTestActivity" >
+        <activity android:name=".tests.TabTestActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".app.PrefsActivity" />
+
+        <activity android:name=".prefs.PrefsActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".tests.FirstLaunchActivity"
+            android:screenOrientation="portrait"/>
 
 
         <!--<service android:enabled="true" android:name=".myspp.BluetoothService" />-->

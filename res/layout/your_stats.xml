@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include android:id="@+id/top_hugger_3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        layout="@layout/hugs_row_list"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+         />
+
+    <include
+        layout="@layout/hugs_row_list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/top_hugger_2"
+        android:layout_above="@+id/top_hugger_3"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true" />
+
+    <include
+        layout="@layout/hugs_row_list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/top_hugger_1"
+        android:layout_above="@+id/top_hugger_2"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="100dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Hugs"
+        android:id="@+id/fl_textview"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:paddingRight="20dp"
+        android:paddingLeft="20dp"
+        android:textSize="40sp"
+        android:textAlignment="center"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/nbr_of_hugs"
+        android:layout_width="wrap_content"
+        android:layout_height="100dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="120"
+        android:padding="4dp"
+        android:textSize="70sp"
+        android:textAlignment="center"
+        android:gravity="start"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/fl_textview"
+        android:textColor="@android:color/holo_green_light" />
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="TOP 3 Huggers"
+        android:id="@+id/top_hugger_header"
+        android:layout_above="@+id/top_hugger_1"
+        android:padding="10dp"
+        android:gravity="center"
+        android:textStyle="bold|italic" />
+</RelativeLayout>

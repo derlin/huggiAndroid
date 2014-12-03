@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="horizontal"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+    android:layout_width="match_parent" android:layout_height="wrap_content">
 
     <ImageView
         android:id="@+id/hug_row_image"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:scaleType="centerCrop"
+        android:layout_gravity="center"
         android:adjustViewBounds="true"
         android:layout_margin="4dp"
-        android:src="@drawable/pixelheart" />
+        android:src="@drawable/logo_android" />
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
@@ -32,8 +33,9 @@
             android:id="@+id/hug_row_subheader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="#bbb"
             android:layout_marginLeft="20dp"
-            style="@android:style/TextAppearance.Holo"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="lala"
              />
 
@@ -41,6 +43,7 @@
             android:id="@+id/hug_row_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="@android:color/darker_gray"
             android:layout_marginLeft="20dp"
             android:text="000000000" />
 

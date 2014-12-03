@@ -62,13 +62,13 @@ public class HugsListAdapter extends ArrayAdapter{
             view.header.setText(  details.getName() );
 
             Uri uri = details.getPhotoUri();
-            if( uri != null ) view.avatar.setImageURI( uri ); // sv.avatar.setImageBitmap( avatar );
+            if( uri != null ) view.avatar.setImageURI( uri );
         }else{
             view.header.setText( hug.getHuggerID() );
-
+            view.avatar.setImageResource( R.drawable.logo_android );
         }
-            view.subheader.setText(String.format( "%s",  hug.getData() ) );
-            view.text.setText(String.format( "%s sec, %s",  hug.getDuration(),  hug.getStringDate() ) );
+            view.subheader.setText(String.format( "Data: %s",  hug.getData() ) );
+            view.text.setText(String.format( "%s, %s",  hug.getStringDuration(),  hug.getStringDate() ) );
         return rowView;
     }
 

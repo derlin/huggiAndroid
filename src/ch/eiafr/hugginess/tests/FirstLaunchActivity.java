@@ -1,5 +1,6 @@
 package ch.eiafr.hugginess.tests;
 
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -8,12 +9,18 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.*;
 import ch.eiafr.hugginess.R;
 import ch.eiafr.hugginess.bluetooth.DeviceList;
 import ch.eiafr.hugginess.bluetooth.HuggiBluetoothService;
@@ -24,14 +31,21 @@ import static ch.eiafr.hugginess.bluetooth.BluetoothState.*;
  * @author: Lucy Linder
  * @date: 01.12.2014
  */
-public class FirstLaunchActivity extends Activity{
+public class FirstLaunchActivity extends FragmentActivity{
 
+    private String mMyPhoneNumber;
+
+    //-------------------------------------------------------------
+    private interface FirstLaunchFragment{
+        void onFail();
+    }
     //-------------------------------------------------------------
 
     private HuggiBluetoothService mSPP;
-    private TextView mTextView;
-    private ProgressBar mProgressBar;
 
+
+    private FirstLaunchFragment mCurrentFragment;
+    private String mHuggerId;
     private String mShirtAddress;
 
     private ServiceConnection mServiceConnection = new ServiceConnection(){
@@ -50,6 +64,7 @@ public class FirstLaunchActivity extends Activity{
         }
     };
 
+    private boolean mine = false;
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver(){
         private int mFailedCount = 0;
 
@@ -63,8 +78,12 @@ public class FirstLaunchActivity extends Activity{
                     break;
 
                 case EVT_DISCONNECTED:
-                    Toast.makeText( FirstLaunchActivity.this, "Disconnected", Toast.LENGTH_SHORT ).show();
-                    finish(); // TODO
+                    if( !mine ){
+                        Toast.makeText( FirstLaunchActivity.this, "Disconnected", Toast.LENGTH_SHORT ).show();
+                        finish(); // TODO
+                    }else{
+                        mine = false;
+                    }
                     break;
 
                 case EVT_CONNECTION_FAILED:
@@ -75,7 +94,9 @@ public class FirstLaunchActivity extends Activity{
                                 .show();
                     }else{
                         // TODO: dialog
-                        step1();
+                        //                        step1();
+                        mFailedCount = 0;
+                        mCurrentFragment.onFail();
                     }
                     break;
 
@@ -86,9 +107,21 @@ public class FirstLaunchActivity extends Activity{
                         if( split.length == 3 ){ // TODO
                             // split[0] is @A
                             step3b( split[ 1 ], split[ 2 ] );
+                        }else{
+                            step3b( "", "" );
                         }
                     }
                     break;
+
+                case EVT_ACK_RECEIVED:
+                    if( intent.getCharExtra( EVT_EXTRA_ACK_CMD, ' ' ) == CMD_SET_ID ){ // TODO set id
+                        Boolean ok = intent.getBooleanExtra( EVT_EXTRA_ACK_STATUS, false );
+                        if( ok ){
+                            finalStep();
+                        }else{
+                            mCurrentFragment.onFail();
+                        }
+                    }
             }
         }
     };
@@ -103,10 +136,10 @@ public class FirstLaunchActivity extends Activity{
         this.bindService( new Intent( this, HuggiBluetoothService.class ), mServiceConnection, 0 );
         LocalBroadcastManager.getInstance( this ).registerReceiver( mBroadcastReceiver, new IntentFilter(
                 BTSERVICE_INTENT_FILTER ) );
-        setContentView( R.layout.first_launch_working );
+        setContentView( R.layout.first_launch_activity );
 
-        mTextView = ( TextView ) findViewById( R.id.text );
-        mProgressBar = ( ProgressBar ) findViewById( R.id.progressBar );
+        //        mTextView = ( TextView ) findViewById( R.id.text );
+        //        mProgressBar = ( ProgressBar ) findViewById( R.id.progressBar );
 
     }
 
@@ -120,6 +153,13 @@ public class FirstLaunchActivity extends Activity{
         super.onDestroy();
     }
 
+
+    @Override
+    public void onSaveInstanceState( Bundle outState ){
+
+    }
+
+
     /* *****************************************************************
      * onActivityResult
      * ****************************************************************/
@@ -128,22 +168,15 @@ public class FirstLaunchActivity extends Activity{
     @Override
     public void onActivityResult( int requestCode, int resultCode, Intent data ){
 
-        if( requestCode == REQUEST_CONNECT_DEVICE ){
-
-            if( resultCode == Activity.RESULT_OK ){
-                mShirtAddress = data.getExtras().getString( EXTRA_DEVICE_ADDRESS );
-                mSPP.connect( mShirtAddress );
-
-            }else{
-                finish();
-            }
-        }else if( requestCode == REQUEST_ENABLE_BT ){
-
+        if( requestCode == REQUEST_ENABLE_BT ){
             if( resultCode == Activity.RESULT_OK ){
                 step2();
             }else{
                 finish();    // TODO
             }
+
+        }else{
+            super.onActivityResult( requestCode, resultCode, data );
         }
     }
 
@@ -170,6 +203,13 @@ public class FirstLaunchActivity extends Activity{
 
     private void step2(){
 
+        if( true ){
+            //            DialogFragment newFragment = MyAlertDialogFragment.newInstance( "lala" );
+            //            newFragment.show( getSupportFragmentManager(), "dialog" );
+            switchFragments( new ChooseTshirtFragment() );
+            return;
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder( this );
         builder.setCancelable( false );
         builder.setTitle( "Select your Huggi-Shirt" );
@@ -195,11 +235,12 @@ public class FirstLaunchActivity extends Activity{
 
         builder.create().show();
 
+
     }
 
 
     /* *****************************************************************
-     * confirm ID
+     * confirm/change ID
      * ****************************************************************/
 
 
@@ -209,6 +250,21 @@ public class FirstLaunchActivity extends Activity{
 
 
     private void step3b( String id, String data ){
+        mHuggerId = id;
+
+        mMyPhoneNumber = getMyPhoneNumber();
+        boolean compare = PhoneNumberUtils.compare( mMyPhoneNumber, id );
+        if( false ){// compare ){
+            finalStep();
+        }else{
+            switchFragments( new ConfirmIDFragment() );
+        }
+
+
+    }
+
+
+    private void step3b_( String id, String data ){
         AlertDialog.Builder builder = new AlertDialog.Builder( this );
         builder.setCancelable( true );
         builder.setTitle( "Current configuration" );
@@ -224,20 +280,17 @@ public class FirstLaunchActivity extends Activity{
         builder.create().show();
     }
 
-    /* *****************************************************************
-     * change id
-     * ****************************************************************/
-
      /* *****************************************************************
      * final
      * ****************************************************************/
 
 
     private void finalStep(){
+        Toast.makeText( this, "Configuration done. Welcome !", Toast.LENGTH_SHORT ).show();
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences( this ).edit();
         editor.putBoolean( getString( R.string.pref_is_configured ), true );
         editor.putString( getString( R.string.pref_paired_tshirt ), mShirtAddress );
-        //editor.commit();
+        editor.commit();
 
         Intent intent = new Intent( this, TabTestActivity.class );
         intent.addFlags( Intent.FLAG_ACTIVITY_CLEAR_TOP );
@@ -252,8 +305,233 @@ public class FirstLaunchActivity extends Activity{
     }
 
 
+    private void switchFragments( Fragment f ){
+        // Execute a transaction, replacing any existing fragment
+        // with this one inside the frame.
+        mCurrentFragment = ( FirstLaunchFragment ) f;
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace( R.id.first_launch_fragment_layout, f );
+        ft.setTransition( FragmentTransaction.TRANSIT_FRAGMENT_FADE );
+        ft.commitAllowingStateLoss();
+    }
+
     /* *****************************************************************
      * *****************************************************************
      * ****************************************************************/
 
- }
+    private class ChooseTshirtFragment extends Fragment implements FirstLaunchFragment{
+        Button mLowerButton, mUpperButton;
+        ProgressBar mProgressBar;
+        TextView mTextView;
+
+
+        @Override
+        public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ){
+            super.onCreateView( inflater, container, savedInstanceState );
+            View view = inflater.inflate( R.layout.first_launch_fragment, container, false );
+
+            mTextView = ( ( TextView ) view.findViewById( R.id.fl_textview ) );
+            mTextView.setText( "You will now choose your Huggi-Shirt" + "" +
+                    ".\nPlease, ensure that your Huggi-Shirt is powered and paired before proceeding." );
+
+            mLowerButton = ( Button ) view.findViewById( R.id.fl_lower_button );
+            mLowerButton.setText( "Open bluetooth settings" );
+
+            mLowerButton.setOnClickListener( new View.OnClickListener(){
+                @Override
+                public void onClick( View view ){
+                    Intent i = new Intent( Settings.ACTION_BLUETOOTH_SETTINGS );
+                    FirstLaunchActivity.this.startActivity( i );
+                }
+            } );
+
+            mUpperButton = ( Button ) view.findViewById( R.id.fl_upper_button );
+            mUpperButton.setText( "Select Huggi-Shirt" );
+
+            view.findViewById( R.id.fl_lower_button );
+            mUpperButton.setOnClickListener( new View.OnClickListener(){
+                @Override
+                public void onClick( View view ){
+                    Intent intent = new Intent( FirstLaunchActivity.this, DeviceList.class );
+                    startActivityForResult( intent, REQUEST_CONNECT_DEVICE );
+                }
+            } );
+
+            mProgressBar = ( ProgressBar ) view.findViewById( R.id.fl_progressbar );
+            return view;
+        }
+
+
+        @Override
+        public void onActivityResult( int requestCode, int resultCode, Intent data ){
+
+            if( requestCode == REQUEST_CONNECT_DEVICE ){
+
+                if( resultCode == Activity.RESULT_OK ){
+                    mShirtAddress = data.getExtras().getString( EXTRA_DEVICE_ADDRESS );
+                    if( mSPP.isConnected() ){
+                        if( mShirtAddress.equals( mSPP.getDeviceAddress() ) ){
+                            step3a();
+                            return;
+                        }
+                        mine = true;
+                        mSPP.disconnect();
+                    }
+
+                    mTextView.setText( "Trying to connect..." );
+                    mProgressBar.setVisibility( View.VISIBLE );
+                    mUpperButton.setEnabled( false );
+                    mSPP.connect( mShirtAddress );
+
+                }else{
+                    finish();
+                }
+            }
+        }
+
+
+        @Override
+        public void onFail(){
+            mTextView.setText( "Could not connect...\nTry another device ?" );
+            mProgressBar.setVisibility( View.INVISIBLE );
+            mUpperButton.setEnabled( true );
+        }
+    }
+
+    /* *****************************************************************
+     * *****************************************************************
+     * ****************************************************************/
+
+    class ConfirmIDFragment extends Fragment implements FirstLaunchFragment, View.OnClickListener, TextView
+            .OnEditorActionListener{
+
+        boolean isIdInput = false, isIdAlreadySet;
+        ProgressBar mProgressBar;
+        TextView mTextView;
+        Button mUpperButton, mLowerButton;
+        EditText mEditText;
+
+        private boolean mIsExecuting = false;
+
+
+        @Override
+        public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ){
+            super.onCreateView( inflater, container, savedInstanceState );
+            final View view = inflater.inflate( R.layout.first_launch_fragment, container, false );
+            isIdAlreadySet = !( mHuggerId == null || mHuggerId.isEmpty() );
+
+
+            mTextView = ( ( TextView ) view.findViewById( R.id.fl_textview ) );
+            //            mTextView.setText( String.format(
+            //                    "The current ID registered in your Huggi-Shirt is %s.\n Is it " +
+            //                    "correct ?", mHuggerId ) );
+
+            mEditText = ( EditText ) view.findViewById( R.id.fl_phone_edittext );
+//            mEditText.setImeActionLabel( "Set ID", KeyEvent.KEYCODE_ENTER );
+
+            mEditText.setText( "0" + ( mMyPhoneNumber != null && mMyPhoneNumber.length() > 3 ? //
+                    mMyPhoneNumber.substring( 3 ) : "" ) ); // replace +41 by 0
+            mEditText.setHint( "0761234567" );
+            mEditText.setOnEditorActionListener( this );
+
+            mUpperButton = ( Button ) view.findViewById( R.id.fl_upper_button );
+            mUpperButton.setOnClickListener( this );
+
+            mLowerButton = ( Button ) view.findViewById( R.id.fl_lower_button );
+            //            mLowerButton.setText( "Nope, change it !" );
+            mLowerButton.setOnClickListener( this );
+
+            mProgressBar = ( ProgressBar ) view.findViewById( R.id.fl_progressbar );
+
+            if( !isIdAlreadySet ){
+                setEditView();
+            }else{
+                setConfirmView();
+            }
+
+            return view;
+        }
+
+
+        private void setConfirmView(){
+            mTextView.setText( String.format( "The current ID registered in your Huggi-Shirt is %s.\n Is it " +
+                    "correct ?", mHuggerId ) );
+            mUpperButton.setText( "Yep!" );
+            mLowerButton.setText( "Nope, change it !" );
+            mEditText.setVisibility( View.INVISIBLE );
+        }
+
+
+        private void setEditView(){
+            if( !isIdAlreadySet ) mLowerButton.setEnabled( false );
+            mTextView.setText( "Please, provide your phone number:" );
+            mLowerButton.setText( "Cancel" );
+            mUpperButton.setText( "Set ID!");
+            mEditText.setVisibility( View.VISIBLE );
+            mEditText.requestFocus();
+        }
+
+
+        @Override
+        public void onClick( View v ){
+            if(v == mLowerButton){
+                if( isIdInput ){
+                    setConfirmView();
+                }else{
+                    setEditView();
+                }
+                isIdInput = !isIdInput;
+
+            }else if(v == mUpperButton){
+                if(isIdInput) updateIdCommand();
+                else finalStep();
+            }
+
+            //            if( isIdInput ){
+            //                mLowerButton.setText( "Nope, change it !" );
+            //                mUpperButton.setEnabled( true );
+            //                mEditText.setVisibility( View.INVISIBLE );
+            //            }else{
+            //                mLowerButton.setText( "Cancel" );
+            //                mUpperButton.setEnabled( false );
+            //                mEditText.setVisibility( View.VISIBLE );
+            //                mEditText.requestFocus();
+            //            }
+
+        }
+
+
+        @Override
+        public boolean onEditorAction( TextView textView, int i, KeyEvent keyEvent ){
+            updateIdCommand();
+            return true;
+        }
+
+
+        public void updateIdCommand(){
+            if(mIsExecuting) return;
+
+            String text = mEditText.getText().toString();
+            if( text.length() == 10 ){
+                mProgressBar.setVisibility( View.VISIBLE );
+                mSPP.executeCommand( CMD_SET_ID, text );  // TODO
+                mIsExecuting = true;
+            }else{
+                Toast.makeText( getActivity(), "Invalid phone number...", Toast.LENGTH_SHORT ).show();
+            }
+        }
+
+
+        @Override
+        public void onFail(){
+            mTextView.setText( "Error setting the ID..." );
+            mProgressBar.setVisibility( View.INVISIBLE );
+            mIsExecuting = false;
+        }
+    }
+
+    /* *****************************************************************
+     * *****************************************************************
+     * ****************************************************************/
+
+}

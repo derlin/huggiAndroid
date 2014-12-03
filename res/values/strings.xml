@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Hugginess</string>
+    <string name="pref_userid">pref_userid</string>
+    <string name="pref_paired_tshirt">pref_paired_tshirt</string>
+    <string name="pref_calibrate">pref_calibrate</string>
+    <string name="pref_get_hug">pref_get_hug</string>
+    <string name="pref_is_configured">pref_is_configured</string>
+    <string name="pref_sleep">pref_sleep</string>
+    <string name="pref_sent_data">pref_set_data</string>
+    <string name="pref_show_config">pref_show_config</string>
 </resources>

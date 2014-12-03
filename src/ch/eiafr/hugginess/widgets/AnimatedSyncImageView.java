@@ -11,9 +11,10 @@ import ch.eiafr.hugginess.R;
  * @author: Lucy Linder
  * @date: 30.11.2014
  */
-public class AnimatedSyncImageView extends ImageView{
+public class AnimatedSyncImageView extends ImageView {
 
-    private AnimationDrawable anim;
+    private AnimationDrawable mAnim;
+
 
     public AnimatedSyncImageView( Context context, AttributeSet attrs, int defStyle ){
         super( context, attrs, defStyle );
@@ -29,47 +30,54 @@ public class AnimatedSyncImageView extends ImageView{
         super( context, attrs );
     }
 
+
     // ----------------------------------------------------
     public void start(){
-//       anim.setVisible( true, true );
-        setVisibility( VISIBLE );
-       anim.start();
+        if( mAnim != null ){
+            setBackground( mAnim );
+            mAnim.start();
+        }
     }
 
 
     public void stop(){
-        anim.stop();
-        setVisibility( INVISIBLE );
-//        anim.setVisible( false, true );
+        if( mAnim != null ) mAnim.stop();
+        setBackground( null );
     }
 
 
     public boolean isRunning(){
-        return anim.isRunning();
+        return mAnim != null && mAnim.isRunning();
     }
     // ----------------------------------------------------
 
+
     public void initializeAnimation(){
-        setImageDrawable(null);
+        // just compile the animation once
+        setImageDrawable( null );
         setBackgroundAnimation();
-        anim = ( AnimationDrawable ) getBackground();
-        stop();
+        mAnim = ( AnimationDrawable ) getBackground();
+        setBackground( null );
     }
 
-    public void setBackgroundAnimation() {
-        setBackgroundResource( R.drawable.stat_notify_sync_anim); // this is an animation-list
+
+    public void setBackgroundAnimation(){
+        setBackgroundResource( R.drawable.stat_notify_sync_anim ); // this is an animation-list
     }
+
+
+
 
     @Override
-    protected void onAttachedToWindow() {
+    protected void onAttachedToWindow(){
         super.onAttachedToWindow();
         Handler handler = new Handler();
         final AnimatedSyncImageView me = this;
-        handler.post(new Runnable(){
-            public void run() {
+        handler.post( new Runnable() {
+            public void run(){
                 me.initializeAnimation();
             }
-        });
+        } );
     }
 
 }//end class

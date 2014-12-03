@@ -156,7 +156,6 @@ public class BluetoothService extends Service {
     // device : The BluetoothDevice to connect
     // secure : Socket Security type - Secure (true) , Insecure (false)
     public synchronized void connect( BluetoothDevice device ){
-
         if( !isBluetoothEnabled() ){  // TODO
             mPendingConnection = device;
             enable();
@@ -415,7 +414,7 @@ public class BluetoothService extends Service {
         void write( byte[] buffer ){
             try{
                 mmOutStream.write( buffer );
-            }catch( IOException e ){
+            }catch( Exception e ){
                 Log.e( TAG, "Exception while writing to BT device " + mDevice.getName() );
             }
         }
@@ -424,7 +423,7 @@ public class BluetoothService extends Service {
         void cancel(){
             try{
                 mmSocket.close();
-            }catch( IOException e ){
+            }catch( Exception e ){
                 Log.d( TAG, "Connected thread canceled." );
             }
         }

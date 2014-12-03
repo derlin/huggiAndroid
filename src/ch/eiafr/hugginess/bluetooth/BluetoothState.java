@@ -86,4 +86,10 @@ public class BluetoothState {
     public static final char CMD_SEND_HUGS = 'H';
     public static final char CMD_CALIBRATE = 'C';
     public static final char CMD_SLEEP = 'S';
+    public static final char CMD_DUMP_ALL = 'A';
+
+
+
+    // sizes etc.
+    public static final int DATA_MAX_SIZE = 50;
 }
