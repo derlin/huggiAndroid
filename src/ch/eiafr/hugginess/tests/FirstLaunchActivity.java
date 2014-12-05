@@ -293,8 +293,10 @@ public class FirstLaunchActivity extends FragmentActivity{
         editor.commit();
 
         Intent intent = new Intent( this, TabTestActivity.class );
-        intent.addFlags( Intent.FLAG_ACTIVITY_CLEAR_TOP );
+//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
         startActivity( intent );
+        finish();
     }
 
 
