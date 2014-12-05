@@ -28,7 +28,7 @@ public class ManageShirtPrefFragment extends PreferenceFragment implements Prefe
 
     // TODO: disable prefs if not connected ? or better: disable whole menu
 
-    Preference mCalibratePref, mSleepPref, mShowConfigPref;
+    Preference mCalibratePref, mSleepPref, mShowConfigPref, mForceSync;
     EditTextPreference mSentDataPref;
     private HuggiBTActivity activity;
     private ProgressDialog mProgressDialog;
@@ -67,6 +67,7 @@ public class ManageShirtPrefFragment extends PreferenceFragment implements Prefe
     };
 
 
+
     private void showConfigDialog( String id, String data ){
         // TODO nicer
         AlertDialog.Builder builder = new AlertDialog.Builder( getActivity() );
@@ -88,7 +89,7 @@ public class ManageShirtPrefFragment extends PreferenceFragment implements Prefe
         mSleepPref = findPreference( getString( R.string.pref_sleep ) );
         mSentDataPref = ( EditTextPreference ) findPreference( getString( R.string.pref_sent_data ) );
         mShowConfigPref = findPreference( getString( R.string.pref_show_config ) );
-
+        mForceSync = findPreference( getString( R.string.pref_get_hug ) );
         mCalibratePref.setOnPreferenceClickListener( this );
         mSleepPref.setOnPreferenceClickListener( this );
         mShowConfigPref.setOnPreferenceClickListener( this );
@@ -145,6 +146,9 @@ public class ManageShirtPrefFragment extends PreferenceFragment implements Prefe
         }else if( preference == mShowConfigPref ){
             mSPP.executeCommand( CMD_DUMP_ALL );
             showProgressDialog();
+
+        }else if(preference == mForceSync){
+            mSPP.executeCommand( CMD_SEND_HUGS );
         }
 
         return true;
