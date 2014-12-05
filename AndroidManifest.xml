@@ -14,10 +14,10 @@
 
         <!--TODO allow landscape mode ?-->
 
-        <activity android:name=".bluetooth.DeviceList"
+        <activity android:name=".gui.bt.DeviceListActivity"
             android:screenOrientation="portrait"/>
 
-        <activity android:name=".tests.TabTestActivity"
+        <activity android:name=".gui.main.MainActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,13 +25,13 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".prefs.PrefsActivity"
+        <activity android:name=".gui.prefs.PrefsActivity"
             android:screenOrientation="portrait"/>
-        <activity android:name=".tests.FirstLaunchActivity"
+        <activity android:name=".gui.firstlaunch.FirstLaunchActivity"
             android:screenOrientation="portrait"/>
 
 
         <!--<service android:enabled="true" android:name=".myspp.BluetoothService" />-->
-        <service android:enabled="true" android:name=".bluetooth.HuggiBluetoothService" />
+        <service android:enabled="true" android:name=".services.bluetooth.HuggiBluetoothService" />
     </application>
 </manifest>

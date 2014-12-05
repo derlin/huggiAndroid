@@ -1,6 +1,6 @@
 package ch.eiafr.hugginess;
 
-import ch.eiafr.hugginess.bluetooth.HuggiBluetoothService;
+import ch.eiafr.hugginess.services.bluetooth.HuggiBluetoothService;
 
 /**
  * @author: Lucy Linder

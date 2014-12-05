@@ -3,7 +3,7 @@ package ch.eiafr.hugginess.app;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
-import ch.eiafr.hugginess.bluetooth.HuggiBluetoothService;
+import ch.eiafr.hugginess.services.bluetooth.HuggiBluetoothService;
 
 /**
  * User: lucy
