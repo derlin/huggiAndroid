@@ -7,8 +7,8 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 
 import java.sql.SQLException;
-import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static ch.eiafr.hugginess.sql.SqlHelper.*;
@@ -58,8 +58,9 @@ public class HugsDataSource{
     public List<Hug> getHugs(){
         List<Hug> hugs = new ArrayList<>();
 
+        // order by epoch, then duration
         Cursor cursor = db.query( HUGS_TABLE, null, null, null, null, null, //
-                String.format( "%s, %s DESC", HG_COL_DATE, HG_COL_DUR ) );
+                String.format( "%s DESC, %s DESC", HG_COL_DATE, HG_COL_DUR ) );
         cursor.moveToFirst();
 
         while( !cursor.isAfterLast() ){
@@ -82,7 +83,7 @@ public class HugsDataSource{
         //values.put( HG_COL_ID, null );
         values.put( HG_COL_ID_REF, hug.getHuggerID() );
         values.put( HG_COL_DUR, hug.getDuration() );
-        values.put( HG_COL_DATE, DATE_FORMAT.format( hug.getDate() ) );
+        values.put( HG_COL_DATE, hug.getDate().getTime() );
         values.put( HG_COL_DATA, hug.getData() );
         return values;
     }
@@ -94,11 +95,7 @@ public class HugsDataSource{
 
         hug.setId( cursor.getInt( i++ ) );
         hug.setHuggerID( cursor.getString( i++ ) );
-        try{
-            hug.setDate( DATE_FORMAT.parse( cursor.getString( i++ ) ) );
-        }catch( ParseException e ){
-            e.printStackTrace();
-        }
+        hug.setDate( new Date(cursor.getLong( i++ ) ));
         hug.setDuration( cursor.getInt( i++ ) );
         hug.setData( cursor.getString( i++ ) );
         return hug;

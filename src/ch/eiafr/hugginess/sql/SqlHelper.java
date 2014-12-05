@@ -5,8 +5,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import java.text.SimpleDateFormat;
-
 /**
  * @author: Lucy Linder
  * @date: 26.11.2014
@@ -32,8 +30,6 @@ public class SqlHelper extends SQLiteOpenHelper{
     public static final String HG_COL_DATA = "data";
     public static final String HG_COL_ID_REF = "hugger_id";
 
-    // dates format
-    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     // create statements
     private static final String CREATE_HUGGERS_TABLE = String.format(//
@@ -46,7 +42,7 @@ public class SqlHelper extends SQLiteOpenHelper{
             "CREATE TABLE %s (" + //
                     "%s INTEGER PRIMARY KEY AUTOINCREMENT," + //
                     "%s %s NOT NULL," + // hugger id
-                    "%s TEXT NOT NULL," + // date
+                    "%s INTEGER NOT NULL," + // date
                     "%s INTEGER NOT NULL," + // duration
                     "%s TEXT NOT NULL," + //  data
                     "FOREIGN KEY(%s) REFERENCES %s(%s)" + //

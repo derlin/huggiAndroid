@@ -29,7 +29,7 @@ import static ch.eiafr.hugginess.bluetooth.BluetoothState.*;
  * @author: Lucy Linder
  * @date: 29.11.2014
  */
-public class ListFragment extends Fragment {
+public class ListFragment extends Fragment{
     private ListView mList;
     private List<Hug> hugs;
     private Map<String, Hugger> huggers;
@@ -76,12 +76,14 @@ public class ListFragment extends Fragment {
 
     //-------------------------------------------------------------
 
+
     @Override
     public void onCreate( Bundle savedInstanceState ){
-        LocalBroadcastManager.getInstance( getActivity() ).registerReceiver( mBroadcastReceiver, new
-                IntentFilter( BTSERVICE_INTENT_FILTER ) );
+        LocalBroadcastManager.getInstance( getActivity() ).registerReceiver( mBroadcastReceiver, new IntentFilter(
+                BTSERVICE_INTENT_FILTER ) );
         super.onCreate( savedInstanceState );
     }
+
 
     @Override
     public void onDestroy(){
@@ -89,28 +91,18 @@ public class ListFragment extends Fragment {
         super.onDestroy();
     }
 
-    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+
+    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver(){
         @Override
         public void onReceive( Context context, Intent intent ){
             switch( intent.getStringExtra( EXTRA_EVT_TYPE ) ){
 
                 case EVT_HUGS_RECEIVED:
-                    try( HuggersDataSource huggersDataSource = new HuggersDataSource( getActivity(), true ) ){
-                        Hug[] newHugs = ( Hug[] ) intent.getSerializableExtra( EVT_EXTRA_HUGS_LIST );
-
-                        for( Hug hug : newHugs ){
-                            hugs.add( 0, hug );
-                            if( !huggers.containsKey( hug.getHuggerID() ) ){
-                                Hugger hugger = huggersDataSource.getHugger( hug.getHuggerID() );
-                                if(hugger != null) huggers.put( hugger.getId(), hugger );
-                            }
-                        }//end for
-
-                        mHugsListAdapter.notifyDataSetChanged();
-                    }catch( SQLException e ){
-                        e.printStackTrace();
-                    }
-
+                    // clean and fast : simply replace adapter and let the
+                    // db do the sorting/ordering stuff
+                    loadDataFromDb();
+                    mHugsListAdapter = new HugsListAdapter( getActivity(), hugs, huggers );
+                    mList.setAdapter( mHugsListAdapter );
                     break;
             }
 
