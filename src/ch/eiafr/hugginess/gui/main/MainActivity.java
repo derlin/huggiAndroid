@@ -16,18 +16,18 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
 import ch.eiafr.hugginess.HuggiBTActivity;
 import ch.eiafr.hugginess.R;
 import ch.eiafr.hugginess.gui.bt.DeviceListActivity;
-import ch.eiafr.hugginess.services.bluetooth.HuggiBluetoothService;
 import ch.eiafr.hugginess.gui.firstlaunch.FirstLaunchActivity;
 import ch.eiafr.hugginess.gui.main.frag.HomeTabFragment;
 import ch.eiafr.hugginess.gui.main.frag.HugsListFragment;
 import ch.eiafr.hugginess.gui.main.frag.TerminalFragment;
 import ch.eiafr.hugginess.gui.prefs.PrefsActivity;
-import ch.eiafr.hugginess.tools.AnimatedSyncImageView;
+import ch.eiafr.hugginess.services.bluetooth.HuggiBluetoothService;
 import ch.eiafr.hugginess.tools.adapters.TabsAdapter;
 
 import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
@@ -43,7 +43,7 @@ public class MainActivity extends FragmentActivity implements HuggiBTActivity{
     private TabsAdapter mTabsAdapter;
     private TextView mTextStatus;
     private Menu menu;
-    private AnimatedSyncImageView mAnim;
+//    private AnimatedSyncImageView mAnim;
     private ActionBar mActionBar;
 
     private boolean isCreated, isBounded, isOk;
@@ -93,6 +93,10 @@ public class MainActivity extends FragmentActivity implements HuggiBTActivity{
             return;
         }
 
+        requestWindowFeature( Window.FEATURE_INDETERMINATE_PROGRESS);
+        requestWindowFeature(Window.FEATURE_PROGRESS);
+        setProgressBarIndeterminate( true );
+        setProgressBarIndeterminateVisibility( true );
 
         setContentView( R.layout.activity_main );
 
@@ -162,8 +166,6 @@ public class MainActivity extends FragmentActivity implements HuggiBTActivity{
     public boolean onCreateOptionsMenu( Menu menu ){
         this.menu = menu;
         getMenuInflater().inflate( R.menu.activity_main_menu, menu );
-        mAnim = ( AnimatedSyncImageView ) menu.findItem( R.id.menu_spiner_anim ).getActionView();
-        if( mSPP != null && mSPP.getState() == STATE_CONNECTING ) mAnim.start();
         return true;
     }
 
@@ -290,7 +292,11 @@ public class MainActivity extends FragmentActivity implements HuggiBTActivity{
 
 
     private void onBTServiceBounded(){
+
         if( !isCreated || !isBounded || isOk ) return;
+
+        setProgressBarIndeterminateVisibility( false );
+
         // check that the bluetooth is on
         if( !mSPP.isBluetoothEnabled() ){
             Toast.makeText( this, "Bluetooth is not available", Toast.LENGTH_SHORT ).show();
@@ -380,7 +386,7 @@ public class MainActivity extends FragmentActivity implements HuggiBTActivity{
         if( addr != null &&  //
                 !( mSPP.isConnected() && addr.equals( mSPP.getDeviceAddress() ) ) ){
             mTextStatus.setEnabled( false );
-            if( mAnim != null ) mAnim.start();
+            setProgressBarIndeterminateVisibility( true );
             mSPP.connect( addr );
         }
 
@@ -391,7 +397,7 @@ public class MainActivity extends FragmentActivity implements HuggiBTActivity{
     private void updateStatus(){
         // TODO
         mTextStatus.setEnabled( true );
-        if( mAnim != null ) mAnim.stop();
+        setProgressBarIndeterminateVisibility( false );
 
         if( mSPP == null ) return;
         switch( mSPP.getState() ){
