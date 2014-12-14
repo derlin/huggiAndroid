@@ -4,25 +4,24 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import ch.eiafr.hugginess.R;
-import ch.eiafr.hugginess.tools.adapters.HugsListAdapter;
 import ch.eiafr.hugginess.sql.entities.Hug;
 import ch.eiafr.hugginess.sql.entities.Hugger;
-import ch.eiafr.hugginess.sql.helpers.HuggersDataSource;
-import ch.eiafr.hugginess.sql.helpers.HugsDataSource;
+import ch.eiafr.hugginess.sql.helpers.HuggiDataSource;
+import ch.eiafr.hugginess.tools.adapters.HugsListAdapter;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
 
@@ -31,9 +30,10 @@ import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
  * @date: 29.11.2014
  */
 public class HugsListFragment extends Fragment{
-    private ListView mList;
-    private List<Hug> hugs;
-    private Map<String, Hugger> huggers;
+
+    private ListView mListview;
+    private List<Hug> mHugsList;
+    private Map<String, Hugger> mHuggersMap;
     private HugsListAdapter mHugsListAdapter;
 
 
@@ -41,38 +41,14 @@ public class HugsListFragment extends Fragment{
     public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ){
         super.onCreate( savedInstanceState );
         View view = inflater.inflate( R.layout.activity_main_frag_hugslist, container, false );
-        mList = ( ListView ) view.findViewById( R.id.tab_contact_list );
-
-        loadDataFromDb();
-        mHugsListAdapter = new HugsListAdapter( getActivity(), hugs, huggers );
-        mList.setAdapter( mHugsListAdapter );
-
-
+        mListview = ( ListView ) view.findViewById( R.id.tab_contact_list );
+        startLoadingData();
         return view;
     }
 
 
-    private void loadDataFromDb(){
-        try{
-            HugsDataSource db = new HugsDataSource( getActivity() );
-            db.open();
-            hugs = db.getHugs();
-            db.close();
-        }catch( SQLException e ){
-            e.printStackTrace();
-            hugs = new ArrayList<>();
-        }
-
-
-        try{
-            HuggersDataSource db = new HuggersDataSource( getActivity() );
-            db.open();
-            huggers = db.getHuggersMap();
-            db.close();
-        }catch( SQLException e ){
-            e.printStackTrace();
-            huggers = new TreeMap<>();
-        }
+    private void startLoadingData(){
+        new LoadDataAsyncTask().execute();
     }//end loadDataFromDb
 
     //-------------------------------------------------------------
@@ -101,13 +77,47 @@ public class HugsListFragment extends Fragment{
                 case EVT_HUGS_RECEIVED:
                     // clean and fast : simply replace adapter and let the
                     // db do the sorting/ordering stuff
-                    loadDataFromDb();
-                    mHugsListAdapter = new HugsListAdapter( getActivity(), hugs, huggers );
-                    mList.setAdapter( mHugsListAdapter );
+                    startLoadingData();
                     break;
             }
 
         }
     };
 
+
+    // ----------------------------------------------------
+
+    private class LoadDataAsyncTask extends AsyncTask<Void, Void, Boolean>{
+
+        @Override
+        protected Boolean doInBackground( Void... voids ){
+            try(HuggiDataSource ds = new HuggiDataSource( getActivity(), true )){
+
+                mHuggersMap = ds.getHuggersMap();
+                mHugsList = ds.getHugs();
+
+                Log.d( getActivity().getPackageName(),
+                        String.format( "HugsList: data loaded. Huggers: %d, Hugs: %d.", //
+                                mHuggersMap.size(), mHugsList.size() ));
+                return true;
+
+            }catch( SQLException e ){
+                Log.d( getActivity().getPackageName(), "Error while loading data from db." );
+                Log.d( getActivity().getPackageName(), e.toString()) ;
+            }
+
+            return false;
+        }
+
+
+        @Override
+        protected void onPostExecute( Boolean ok ){
+            super.onPostExecute( ok );
+            if(ok){
+                assert  mHugsList != null && mHuggersMap != null;
+                mHugsListAdapter = new HugsListAdapter( getActivity(), mHugsList, mHuggersMap );
+                mListview.setAdapter( mHugsListAdapter );
+            }
+        }
+    }
 }
