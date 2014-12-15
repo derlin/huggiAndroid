@@ -19,6 +19,7 @@ import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
 public class HuggiBluetoothService extends BluetoothService {
 
     private static final int MAX_DEQUE_SIZE = 30;
+
     private ReceivedDataBuffer mReceivedDataBuffer = new ReceivedDataBuffer(MAX_DEQUE_SIZE);
 
     public List<Hug> hugBuffer = new ArrayList<>();
@@ -28,7 +29,28 @@ public class HuggiBluetoothService extends BluetoothService {
 
     private static final long BT_TIMEOUT = 2400;
 
+    private static HuggiBluetoothService INSTANCE;
+
     // ----------------------------------------------------
+    public static HuggiBluetoothService getInstance(){
+        return INSTANCE;
+    }
+    // ----------------------------------------------------
+
+
+    @Override
+    public void onCreate(){
+        super.onCreate();
+        INSTANCE = this;
+    }
+
+
+    @Override
+    public void onDestroy(){
+        INSTANCE = null;
+        super.onDestroy();
+    }
+
 
     public class BTBinder extends Binder {
         public HuggiBluetoothService getService(){
@@ -38,14 +60,8 @@ public class HuggiBluetoothService extends BluetoothService {
 
 
     @Override
-    public IBinder onBind( Intent arg0 ){
+    public IBinder onBind( Intent intent ){
         return myBinder;
-    }
-
-
-    @Override
-    public int onStartCommand( Intent intent, int flags, int startId ){
-        return super.onStartCommand( intent, flags, startId );
     }
 
 

@@ -18,7 +18,9 @@
             android:screenOrientation="portrait"/>
 
         <activity android:name=".gui.main.MainActivity"
-            android:screenOrientation="portrait">
+            android:launchMode="singleTop"
+            android:configChanges="orientation|keyboardHidden|screenSize" >
+            <!--android:screenOrientation="portrait">-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
