@@ -34,24 +34,24 @@ public class HugsListAdapter extends ArrayAdapter{
 
 
     @Override
-    public View getView( int position, View rowView, ViewGroup parent ){
+    public View getView( int position, View convertView, ViewGroup parent ){
 
-        RetainView view;
+        ViewHolder viewHolder;
 
-        if( rowView == null ){
+        if( convertView == null ){
 
             LayoutInflater inflater = activity.getLayoutInflater();
-            rowView = inflater.inflate( R.layout.adapter_hugslist_item, null );
+            convertView = inflater.inflate( R.layout.adapter_hugslist_item, null );
 
-            view = new RetainView();
-            view.header = ( TextView ) rowView.findViewById( R.id.hug_row_header );
-            view.subheader = ( TextView ) rowView.findViewById( R.id.hug_row_subheader );
-            view.text = ( TextView ) rowView.findViewById( R.id.hug_row_text );
-            view.avatar = ( ImageView ) rowView.findViewById( R.id.hug_row_image );
+            viewHolder = new ViewHolder();
+            viewHolder.header = ( TextView ) convertView.findViewById( R.id.hug_row_header );
+            viewHolder.subheader = ( TextView ) convertView.findViewById( R.id.hug_row_subheader );
+            viewHolder.text = ( TextView ) convertView.findViewById( R.id.hug_row_text );
+            viewHolder.avatar = ( ImageView ) convertView.findViewById( R.id.hug_row_image );
 
-            rowView.setTag( view );
+            convertView.setTag( viewHolder );
         }else{
-            view = ( RetainView ) rowView.getTag();
+            viewHolder = ( ViewHolder ) convertView.getTag();
         }
 
         Hug hug = hugs.get( position );
@@ -59,21 +59,21 @@ public class HugsListAdapter extends ArrayAdapter{
 
         if( hugger.isLocalContact() ){
             Hugger.LocalContactDetails details = hugger.getDetails();
-            view.header.setText(  details.getName() );
+            viewHolder.header.setText(  details.getName() );
 
             Uri uri = details.getPhotoUri();
-            if( uri != null ) view.avatar.setImageURI( uri );
+            if( uri != null ) viewHolder.avatar.setImageURI( uri );
         }else{
-            view.header.setText( hug.getHuggerID() );
-            view.avatar.setImageResource( R.drawable.logo_android );
+            viewHolder.header.setText( hug.getHuggerID() );
+            viewHolder.avatar.setImageResource( R.drawable.logo_android );
         }
-            view.subheader.setText(String.format( "Data: %s",  hug.getData() ) );
-            view.text.setText(String.format( "%s, %s",  hug.getStringDuration(),  hug.getStringDate() ) );
-        return rowView;
+            viewHolder.subheader.setText(String.format( "Data: %s",  hug.getData() ) );
+            viewHolder.text.setText(String.format( "%s, %s",  hug.getStringDuration(),  hug.getStringDate() ) );
+        return convertView;
     }
 
 
-    protected static class RetainView{
+    protected static class ViewHolder{
         protected TextView header;
         protected TextView subheader;
         protected TextView text;
