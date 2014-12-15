@@ -45,19 +45,13 @@
             android:text="Send" />
     </LinearLayout>
 
-
-    <TextView
-        android:id="@+id/textRead"
-        android:layout_above="@id/layout1"
-        android:layout_width="match_parent"
+    <ListView
+        android:id="@+id/listview"
+        android:layout_width="fill_parent"
         android:layout_height="match_parent"
-        android:scrollbars="vertical"
-        android:padding="10dp"
-        android:background="@android:color/white"
-        android:textColor="#333333"
-        android:gravity="bottom"
-        android:text="lala"
-        android:textSize="16sp" />
+        android:layout_above="@id/layout1"
+        android:transcriptMode="alwaysScroll"
+        android:background="#fff" />
 
     <!--android:maxLines="5"-->
 

@@ -1,99 +1,71 @@
 package ch.eiafr.hugginess.gui.main.frag;
 
-import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.LocalBroadcastManager;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.*;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-import ch.eiafr.hugginess.HuggiBTActivity;
+import android.widget.*;
 import ch.eiafr.hugginess.R;
 import ch.eiafr.hugginess.services.bluetooth.HuggiBluetoothService;
+import ch.eiafr.hugginess.services.bluetooth.HuggiBroadcastReceiver;
+import ch.eiafr.hugginess.tools.adapters.TerminalAdapter;
 
-import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
+import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.CMD_SEND_HUGS;
 
 /**
  * @author: Lucy Linder
  * @date: 22.11.2014
  */
-public class TerminalFragment extends Fragment {
+public class TerminalFragment extends Fragment{
+
     private HuggiBluetoothService mSPP;
-    private View view;
-    private TextView mReceivedText;
     private Button mSendButton;
     private EditText mEditText;
 
-    private StringBuilder text = new StringBuilder();
+    private TerminalAdapter mTerminalAdapter;
+    private int mMaxLines = 70; // TODO
 
-    Menu menu;
+    // ----------------------------------------------------
 
-    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+    private HuggiBroadcastReceiver mBroadcastReceiver = new HuggiBroadcastReceiver(){
+
+
         @Override
-        public void onReceive( Context context, Intent intent ){
-            switch( intent.getStringExtra( EXTRA_EVT_TYPE ) ){
-                case EVT_DATA_RECEIVED:
-                    String newline = intent.getStringExtra( EVT_EXTRA_DATA ) + "\n";
-                    text.append( newline );
-                    if( mReceivedText != null ) mReceivedText.append( newline );
-                    //if(mSPP != null) mReceivedText.setText( mSPP.getLastReceivedData() );
-                    break;
+        public void onBtConnected(){
+            if( mSendButton != null ) mSendButton.setEnabled( true );
+            mSPP.executeCommand( CMD_SEND_HUGS ); // auto fetch
+        }
 
-                case EVT_CONNECTED:
-                    if( mSendButton != null ) mSendButton.setEnabled( true );
-                    mSPP.executeCommand( CMD_SEND_HUGS ); // auto fetch
-                    break;
 
-                case EVT_DISCONNECTED:
-                    if( mSendButton != null ) mSendButton.setEnabled( false );
-                    break;
-            }
+        @Override
+        public void onBtDisonnected(){
+            if( mSendButton != null ) mSendButton.setEnabled( false );
+        }
+
+
+        @Override
+        public void onBtDataReceived( String newline ){
+            mTerminalAdapter.appendLine( newline );
         }
     };
 
-
-    @Override
-    public void onCreate( Bundle savedInstanceState ){
-        Log.d( "lala", "on create" );
-        LocalBroadcastManager.getInstance( getActivity() ).registerReceiver( mBroadcastReceiver, new
-                IntentFilter( BTSERVICE_INTENT_FILTER ) );
-
-        super.onCreate( savedInstanceState );
-
-
-    }
+    // ----------------------------------------------------
 
 
     @Override
     public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ){
-        Log.d( "lala", "on create view" );
-        view = inflater.inflate( R.layout.activity_main_frag_terminal, container, false );
+        View view = inflater.inflate( R.layout.activity_main_frag_terminal, container, false );
 
-        Log.i( "Check", "onCreateView" );
+        mSPP = HuggiBluetoothService.getInstance();
 
-        //        mTextStatus = ( TextView ) view.findViewById(R.id.textStatus);
         mEditText = ( EditText ) view.findViewById( R.id.etMessage );
-        mReceivedText = ( TextView ) view.findViewById( R.id.textRead );
-        mReceivedText.setMovementMethod( new ScrollingMovementMethod() );
-
-
-        registerForContextMenu( mReceivedText );
-
-        mSPP = ( ( HuggiBTActivity ) getActivity() ).getHuggiService();
-
-        mReceivedText.setText( text.toString() );
-        //        if(mSPP != null)
-        //        mReceivedText.setText( mSPP.getLastReceivedData() );
 
         mSendButton = ( Button ) view.findViewById( R.id.btnSend );
-        mSendButton.setEnabled( mSPP != null && mSPP.isConnected() );
-        mSendButton.setOnClickListener( new View.OnClickListener() {
+        mSendButton.setEnabled( mSPP.isConnected() );
+        mSendButton.setOnClickListener( new View.OnClickListener(){
             public void onClick( View v ){
                 if( mEditText.getText().length() != 0 ){
                     mSPP.send( mEditText.getText().toString(), true );
@@ -101,29 +73,25 @@ public class TerminalFragment extends Fragment {
             }
         } );
 
+        ListView mListView = ( ListView ) view.findViewById( R.id.listview );
+        mTerminalAdapter = new TerminalAdapter( getActivity(), mMaxLines );
+        mListView.setAdapter( mTerminalAdapter );
+        registerForContextMenu( mListView );
 
         return view;
     }
 
 
     @Override
-    public void onPause(){
-        Log.d( "lala", "on pause" );
-        super.onPause();
-    }
-
-
-    @Override
-    public void onDestroyView(){
-        Log.d( "lala", "on destroy view" );
-        super.onDestroyView();
+    public void onCreate( Bundle savedInstanceState ){
+        super.onCreate( savedInstanceState );
+        mBroadcastReceiver.registerSelf( getActivity() );
     }
 
 
     @Override
     public void onDestroy(){
-        LocalBroadcastManager.getInstance( getActivity() ).unregisterReceiver( mBroadcastReceiver );
-        Log.d( "lala", "ondestroy" );
+        mBroadcastReceiver.unregisterSelf( getActivity() );
         super.onDestroy();
     }
 
@@ -138,15 +106,29 @@ public class TerminalFragment extends Fragment {
         super.onCreateContextMenu( menu, v, menuInfo );
         menu.setHeaderTitle( "Options" );
         menu.add( 0, v.getId(), 0, "Clear" );
+        menu.add( 1, v.getId(), 0, "Copy to clipboard" );
     }
 
 
     @Override
     public boolean onContextItemSelected( MenuItem item ){
         if( item.getTitle() == "Clear" ){
-            mReceivedText.setText( "" );
+            mTerminalAdapter.clear();
             return true;
+        }else if (item.getTitle().equals( "Copy to clipboard" )){
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo ) item.getMenuInfo();
+
+            // Gets a handle to the clipboard service.
+            ClipboardManager clipboard = (ClipboardManager )
+                    getActivity().getSystemService( Context.CLIPBOARD_SERVICE );
+            String text = mTerminalAdapter.getItem( info.position );
+            ClipData clip = ClipData.newPlainText("huggi text", text);
+            clipboard.setPrimaryClip(clip);
+
+            Toast.makeText(getActivity(), "Copied line to clipbaord", Toast.LENGTH_SHORT).show();
+            Log.i( getActivity().getPackageName(), "Copied text '" + text + "' to clipboard" );
         }
         return true;
     }
+
 }//end class
