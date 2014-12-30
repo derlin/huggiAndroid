@@ -255,6 +255,8 @@ public class MainActivity extends FragmentActivity implements HuggiBTActivity{
                 Toast.makeText( getApplicationContext(), "Bluetooth was not enabled.", Toast.LENGTH_SHORT ).show();
                 finish();    // TODO
             }
+        }else{
+            super.onActivityResult( requestCode, resultCode, data );
         }
     }
 
