@@ -8,8 +8,6 @@ import android.provider.ContactsContract;
 import android.util.Log;
 import ch.eiafr.hugginess.app.App;
 
-import java.io.InputStream;
-
 /**
  * @author: Lucy Linder
  * @date: 26.11.2014
@@ -96,7 +94,6 @@ public class Hugger{
 
 
         Context context = App.getAppContext();
-        InputStream photoInputStream;
 
         LocalContactDetails details = new LocalContactDetails();
 

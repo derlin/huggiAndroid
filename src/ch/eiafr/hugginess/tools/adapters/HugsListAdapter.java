@@ -19,7 +19,7 @@ import java.util.Map;
  * @author: Lucy Linder
  * @date: 29.11.2014
  */
-public class HugsListAdapter extends ArrayAdapter{
+public class HugsListAdapter extends ArrayAdapter<Hug>{
     private final Activity activity;
     private final List<Hug> hugs;
     private Map<String, Hugger> huggers;

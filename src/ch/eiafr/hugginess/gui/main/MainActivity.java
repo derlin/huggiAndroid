@@ -20,7 +20,6 @@ import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
-import ch.eiafr.hugginess.HuggiBTActivity;
 import ch.eiafr.hugginess.R;
 import ch.eiafr.hugginess.gui.bt.DeviceListActivity;
 import ch.eiafr.hugginess.gui.firstlaunch.FirstLaunchActivity;
@@ -39,7 +38,7 @@ import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
  * @author: Lucy Linder
  * @date: 22.11.2014
  */
-public class MainActivity extends FragmentActivity implements HuggiBTActivity{
+public class MainActivity extends FragmentActivity {
 
     private ViewPager mViewPager;
     private TabsAdapter mTabsAdapter;
@@ -258,12 +257,6 @@ public class MainActivity extends FragmentActivity implements HuggiBTActivity{
         }else{
             super.onActivityResult( requestCode, resultCode, data );
         }
-    }
-
-
-    @Override
-    public HuggiBluetoothService getHuggiService(){
-        return mSPP;
     }
 
 
