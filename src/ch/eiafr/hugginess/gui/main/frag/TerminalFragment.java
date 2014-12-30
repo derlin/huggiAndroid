@@ -21,6 +21,7 @@ import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.CMD_SEND_
  */
 public class TerminalFragment extends Fragment{
 
+    private static final int TERMINAL_FRAG_GROUP_ID = 'T';
     private HuggiBluetoothService mSPP;
     private Button mSendButton;
     private EditText mEditText;
@@ -76,6 +77,8 @@ public class TerminalFragment extends Fragment{
         ListView mListView = ( ListView ) view.findViewById( R.id.listview );
         mTerminalAdapter = new TerminalAdapter( getActivity(), mMaxLines );
         mListView.setAdapter( mTerminalAdapter );
+
+        setHasOptionsMenu( true );
         registerForContextMenu( mListView );
 
         return view;
@@ -105,20 +108,23 @@ public class TerminalFragment extends Fragment{
     public void onCreateContextMenu( ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo ){
         super.onCreateContextMenu( menu, v, menuInfo );
         menu.setHeaderTitle( "Options" );
-        menu.add( 0, v.getId(), 0, "Clear" );
-        menu.add( 1, v.getId(), 0, "Copy to clipboard" );
+        menu.add( TERMINAL_FRAG_GROUP_ID, v.getId(), 0, "Clear" );
+        menu.add( TERMINAL_FRAG_GROUP_ID, v.getId(), 0, "Copy to clipboard" );
     }
 
 
     @Override
     public boolean onContextItemSelected( MenuItem item ){
+        // check that the event comes from this list
+        if( item.getGroupId() != TERMINAL_FRAG_GROUP_ID ) return false;
+
         if( item.getTitle() == "Clear" ){
             mTerminalAdapter.clear();
             return true;
         }else if (item.getTitle().equals( "Copy to clipboard" )){
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo ) item.getMenuInfo();
 
-            // Gets a handle to the clipboard service.
+            // get a handle to the clipboard service.
             ClipboardManager clipboard = (ClipboardManager )
                     getActivity().getSystemService( Context.CLIPBOARD_SERVICE );
             String text = mTerminalAdapter.getItem( info.position );
