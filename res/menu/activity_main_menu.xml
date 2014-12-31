@@ -15,4 +15,9 @@
         android:id="@+id/menu_bt_settings"
         android:orderInCategory="100"
         android:title="Bluetooth Settings" />
+
+    <item
+        android:id="@+id/menu_about"
+        android:orderInCategory="100"
+        android:title="About" />
 </menu>

@@ -18,6 +18,7 @@ import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
 import ch.eiafr.hugginess.R;
+import ch.eiafr.hugginess.gui.about.AboutActivity;
 import ch.eiafr.hugginess.gui.firstlaunch.FirstLaunchActivity;
 import ch.eiafr.hugginess.gui.main.frag.HomeTabFragment;
 import ch.eiafr.hugginess.gui.main.frag.HugsListFragment;
@@ -31,8 +32,12 @@ import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
 
 
 /**
- * @author: Lucy Linder
- * @date: 22.11.2014
+ * @author  Lucy Linder
+ * date     22.11.2014
+ * Context  Projet de semestre Hugginess, EIA-FR, I3 2014-2015
+ *
+ * This class is the main activity. It holds a tabs adapter displaying
+ * three tabs: a summary view, a list of hugs and a terminal.
  */
 public class MainActivity extends FragmentActivity {
 
@@ -209,6 +214,10 @@ public class MainActivity extends FragmentActivity {
 
             case R.id.menu_prefs:
                 startActivity( new Intent( this, PrefsActivity.class ) );
+                break;
+
+            case R.id.menu_about:
+                startActivity( new Intent( this, AboutActivity.class ) );
                 break;
         }
 
