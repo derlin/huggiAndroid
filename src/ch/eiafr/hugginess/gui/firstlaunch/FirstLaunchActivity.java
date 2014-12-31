@@ -34,9 +34,11 @@ import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
  */
 public class FirstLaunchActivity extends FragmentActivity {
 
-    private String mMyPhoneNumber;
 
     //-------------------------------------------------------------
+    // the bluetooth events are handled from the activity.
+    // --> use this method to notify the current fragment when a
+    // nak is received
     private interface FirstLaunchFragment {
         void onFail();
     }
@@ -44,13 +46,13 @@ public class FirstLaunchActivity extends FragmentActivity {
 
     private HuggiBluetoothService mSPP;
 
-
     private FirstLaunchFragment mCurrentFragment;
     private String mHuggerId;
     private String mShirtAddress;
 
+    private String mMyPhoneNumber;
     private boolean isMyDisconnectRequest = false;
-
+    private boolean mIsAckFinishingActivity = false;
     //-------------------------------------------------------------
 
     private HuggiBroadcastReceiver mBroadcastReceiver = new HuggiBroadcastReceiver() {
@@ -107,7 +109,7 @@ public class FirstLaunchActivity extends FragmentActivity {
         @Override
         public void onBtAckReceived( char cmd, boolean ok ){
             if( ok ){
-                finalStep();
+                if(mIsAckFinishingActivity) finalStep();
             }else{
                 mCurrentFragment.onFail();
             }
@@ -146,6 +148,7 @@ public class FirstLaunchActivity extends FragmentActivity {
             protected void onPostExecute( Void aVoid ){
                 step1CheckBluetoothEnabled();
             }
+
         }.execute();
 
 
@@ -153,17 +156,18 @@ public class FirstLaunchActivity extends FragmentActivity {
 
     // ----------------------------------------------------
 
+    @Override
+    protected void onNewIntent( Intent intent ){
+        // overriding this method fixes the bugs related to
+        // configuration change. The activity is no longer restarted !
+        super.onNewIntent( intent );
+        setIntent( intent );
+    }
 
     @Override
     public void onDestroy(){
         mBroadcastReceiver.unregisterSelf( this );
         super.onDestroy();
-    }
-
-
-    @Override
-    public void onSaveInstanceState( Bundle outState ){
-
     }
 
 
@@ -270,6 +274,7 @@ public class FirstLaunchActivity extends FragmentActivity {
         // Execute a transaction, replacing any existing fragment
         // with this one inside the frame.
         mCurrentFragment = ( FirstLaunchFragment ) f;
+        f.setRetainInstance( true );
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace( R.id.first_launch_fragment_layout, f );
         ft.setTransition( FragmentTransaction.TRANSIT_FRAGMENT_FADE );
@@ -355,7 +360,7 @@ public class FirstLaunchActivity extends FragmentActivity {
         @Override
         public void onFail(){
             mTextView.setText( "Could not connect...\nTry another device ?" );
-            mProgressBar.setVisibility( View.INVISIBLE );
+            mProgressBar.setVisibility( View.GONE );
             mUpperButton.setEnabled( true );
         }
     }
@@ -415,7 +420,7 @@ public class FirstLaunchActivity extends FragmentActivity {
                     " " + "correct ?", mHuggerId ) );
             mUpperButton.setText( "Yep!" );
             mLowerButton.setText( "Nope, change it !" );
-            mEditText.setVisibility( View.INVISIBLE );
+            mEditText.setVisibility( View.GONE );
         }
 
 
@@ -460,9 +465,10 @@ public class FirstLaunchActivity extends FragmentActivity {
             if( mIsExecuting ) return;
 
             String text = mEditText.getText().toString();
-            if( text.length() == 10 ){
+            if( text.length() == ID_SIZE ){
                 mProgressBar.setVisibility( View.VISIBLE );
                 mSPP.executeCommand( CMD_SET_ID, text );  // TODO
+                mIsAckFinishingActivity = true;
                 mIsExecuting = true;
             }else{
                 Toast.makeText( getActivity(), "Invalid phone number...", Toast.LENGTH_SHORT ).show();
@@ -473,13 +479,9 @@ public class FirstLaunchActivity extends FragmentActivity {
         @Override
         public void onFail(){
             mTextView.setText( "Error setting the ID..." );
-            mProgressBar.setVisibility( View.INVISIBLE );
+            mProgressBar.setVisibility( View.GONE );
             mIsExecuting = false;
         }
     }
-
-    /* *****************************************************************
-     * *****************************************************************
-     * ****************************************************************/
 
 }

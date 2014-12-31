@@ -83,6 +83,8 @@ public class MainActivity extends FragmentActivity {
 
     @Override
     protected void onNewIntent(Intent intent) {
+        // overriding this method fixes the bugs related to
+        // configuration change. The activity is no longer restarted !
         super.onNewIntent(intent);
         setIntent(intent);
     }
@@ -110,7 +112,7 @@ public class MainActivity extends FragmentActivity {
 
         setContentView( R.layout.activity_main );
 
-        //checkFirstLaunch();
+//        checkFirstLaunch();
 
 
 

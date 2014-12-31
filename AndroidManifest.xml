@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="ch.eiafr.hugginess"
-    android:versionCode="1" android:versionName="1.0">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="ch.eiafr.hugginess"
+    android:versionCode="1"
+    android:versionName="1.0">
 
     <uses-sdk android:minSdkVersion="19" />
 
@@ -9,17 +11,21 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
-    <application android:label="@string/app_name" android:icon="@drawable/pixelheart"
+    <application
+        android:label="@string/app_name"
+        android:icon="@drawable/pixelheart"
         android:name=".app.App">
 
         <!--TODO allow landscape mode ?-->
 
-        <activity android:name=".gui.bt.DeviceListActivity"
-            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".gui.bt.DeviceListActivity"
+            android:screenOrientation="portrait" />
 
-        <activity android:name=".gui.main.MainActivity"
+        <activity
+            android:name=".gui.main.MainActivity"
             android:launchMode="singleTop"
-            android:configChanges="orientation|keyboardHidden|screenSize" >
+            android:configChanges="orientation|keyboardHidden|screenSize">
             <!--android:screenOrientation="portrait">-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,13 +33,17 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".gui.prefs.PrefsActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".gui.firstlaunch.FirstLaunchActivity"
-            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".gui.prefs.PrefsActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"/>
+        <activity
+            android:name=".gui.firstlaunch.FirstLaunchActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"/>
 
 
         <!--<service android:enabled="true" android:name=".myspp.BluetoothService" />-->
-        <service android:enabled="true" android:name=".services.bluetooth.HuggiBluetoothService" />
+        <service
+            android:enabled="true"
+            android:name=".services.bluetooth.HuggiBluetoothService" />
     </application>
 </manifest>

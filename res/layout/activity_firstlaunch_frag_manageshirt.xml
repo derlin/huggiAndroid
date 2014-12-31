@@ -10,15 +10,16 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:layout_weight="1"
         android:gravity="center"
-        android:layout_margin="30sp"
+        android:layout_margin="10sp"
         android:layout_gravity="center_horizontal"
+        android:text="test"
         />
 
     <ProgressBar
         android:id="@+id/fl_progressbar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="invisible"
+        android:visibility="gone"
         style="?android:attr/progressBarStyleLarge"
         android:layout_gravity="center_horizontal" />
 
@@ -26,7 +27,7 @@
         android:id="@+id/fl_phone_edittext"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="invisible"
+        android:visibility="gone"
         android:layout_margin="30dp"
         android:inputType="phone"
         android:singleLine="true"
