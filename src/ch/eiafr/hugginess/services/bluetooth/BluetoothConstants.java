@@ -92,4 +92,5 @@ public class BluetoothConstants{
 
     // sizes etc.
     public static final int DATA_MAX_SIZE = 50;
+    public static final int ID_SIZE = 10;
 }
