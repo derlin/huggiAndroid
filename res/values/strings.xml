@@ -9,4 +9,7 @@
     <string name="pref_sleep">pref_sleep</string>
     <string name="pref_sent_data">pref_set_data</string>
     <string name="pref_show_config">pref_show_config</string>
+    <string name="pref_reset_eeprom">pref_reset_eeprom</string>
+    <string name="pref_reset_app">pref_reset_app</string>
+    <string name="pref_clear_db">pref_clear_db</string>
 </resources>

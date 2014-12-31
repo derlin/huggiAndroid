@@ -2,10 +2,14 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-
     <PreferenceCategory
-        android:title="Configuration"
-        android:summary="Configure your Huggi-Shirt behavior.">
+        android:title="Core configuration"
+        android:summary="Configure your HuggiShirt behavior.">
+
+        <ch.eiafr.hugginess.tools.PreferenceValueAsSummary
+            android:key="@string/pref_paired_tshirt"
+            android:summary="MAC address of your paired HuggiShirt"
+            android:title="MAC address of your HuggiShirt" />
 
         <Preference
             android:key="@string/pref_show_config"
@@ -46,6 +50,26 @@
             android:persistent="false"
             android:summary="Manually fetch new hugs"
             android:title="Force sync" />
+
+    </PreferenceCategory>
+
+    <!--________________________-->
+
+    <PreferenceCategory
+        android:title="Reset"
+        android:summary="Reset your HuggiShirt or your Hugginess Application">
+
+        <Preference
+            android:key="@string/pref_reset_app"
+            android:summary="Erase all data and start a new pairing process."
+            android:persistent="false"
+            android:title="Reset App" />
+
+        <Preference
+            android:key="@string/pref_clear_db"
+            android:persistent="false"
+            android:summary="Erase all hug data."
+            android:title="Clear Data" />
 
     </PreferenceCategory>
 
