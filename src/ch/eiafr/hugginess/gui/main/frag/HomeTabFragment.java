@@ -1,35 +1,26 @@
 package ch.eiafr.hugginess.gui.main.frag;
 
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.database.Cursor;
-import android.database.DatabaseUtils;
-import android.database.sqlite.SQLiteDatabase;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.LocalBroadcastManager;
+import android.util.Pair;
 import android.view.*;
 import android.widget.ImageView;
 import android.widget.TextView;
 import ch.eiafr.hugginess.R;
+import ch.eiafr.hugginess.services.bluetooth.HuggiBroadcastReceiver;
 import ch.eiafr.hugginess.sql.entities.Hugger;
 import ch.eiafr.hugginess.sql.helpers.HuggiDataSource;
-import ch.eiafr.hugginess.sql.helpers.SqlHelper;
 
-import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
-import static ch.eiafr.hugginess.sql.helpers.SqlHelper.HG_COL_ID_REF;
-import static ch.eiafr.hugginess.sql.helpers.SqlHelper.HUGS_TABLE;
+import java.util.List;
 
 /**
  * @author: Lucy Linder
  * @date: 22.11.2014
  */
-public class HomeTabFragment extends Fragment{
-
-    private TextView hugCount;
+public class HomeTabFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     private View[] mTop3Views;
     private TextView mNbrHugsTextView;
@@ -37,16 +28,14 @@ public class HomeTabFragment extends Fragment{
 
     // ----------------------------------------------------
 
-    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver(){
+    private HuggiBroadcastReceiver mBroadcastReceiver = new HuggiBroadcastReceiver(){
         @Override
-        public void onReceive( Context context, Intent intent ){
-            switch( intent.getStringExtra( EXTRA_EVT_TYPE ) ){
-                case EVT_HUGS_RECEIVED:
-                   populateViews();
-            }
+        public void onBtHugsReceived( int hugCOunt ){
+            populateViews();
         }
     };
-            // ----------------------------------------------------
+    // ----------------------------------------------------
+
 
     @Override
     public void onCreateOptionsMenu( Menu menu, MenuInflater inflater ){
@@ -56,7 +45,8 @@ public class HomeTabFragment extends Fragment{
 
     public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ){
         View view = inflater.inflate( R.layout.activity_main_frag_hometab, container, false );
-
+        PreferenceManager.getDefaultSharedPreferences( getActivity() ).registerOnSharedPreferenceChangeListener( this );
+        mBroadcastReceiver.registerSelf( getActivity() );
         setHasOptionsMenu( true );
 
         mTop3Views = new View[]{ view.findViewById( R.id.top_hugger_1 ), //
@@ -67,45 +57,40 @@ public class HomeTabFragment extends Fragment{
         mNbrHugsTextView = ( TextView ) view.findViewById( R.id.nbr_of_hugs );
 
         populateViews();
-        LocalBroadcastManager.getInstance( getActivity() ).registerReceiver( mBroadcastReceiver, new IntentFilter(
-                BTSERVICE_INTENT_FILTER ) );
 
         return view;
     }
 
+
     @Override
-    public void onDestroy(){
-        LocalBroadcastManager.getInstance( getActivity() ).unregisterReceiver( mBroadcastReceiver );
-        super.onDestroy();
+    public void onDestroyView(){
+        mBroadcastReceiver.unregisterSelf( getActivity() );
+        PreferenceManager.getDefaultSharedPreferences( getActivity() ) //
+                .unregisterOnSharedPreferenceChangeListener( this );
+        super.onDestroyView();
     }
 
     // ----------------------------------------------------
 
 
     private void populateViews(){
-        SQLiteDatabase db = new SqlHelper( getActivity() ).getWritableDatabase();
-        Cursor cursor = null;
+
         int totalHugsCount = 0;
 
-        try(HuggiDataSource ds = new HuggiDataSource( getActivity(), true )){
+        try( HuggiDataSource dbs = new HuggiDataSource( getActivity(), true ) ){
 
-            totalHugsCount = ( int ) DatabaseUtils.queryNumEntries( db, HUGS_TABLE );
+            totalHugsCount = dbs.getHugsCount();
 
-
-            cursor = db.rawQuery( String.format( "select %s, count(*) from %s group by %s order by 2 DESC limit " + "3", //
-                    HG_COL_ID_REF, HUGS_TABLE, HG_COL_ID_REF ), null );
-            cursor.moveToFirst();
+            // -- get the top 3
+            List<Pair<Hugger, Integer>> top3 = dbs.getTopXHuggers( 3 );
 
             int i = 0;
+            // populate views
+            for( Pair<Hugger, Integer> pair : top3 ){
+                setHuggerView( mTop3Views[ i++ ], pair.first, pair.second );
+            }//end for
 
-            while( !cursor.isAfterLast() ){
-                Hugger hugger = ds.getHugger( cursor.getString( 0 ) );
-                int hugCount = cursor.getInt( 1 );
-                setHuggerView( mTop3Views[ i ], hugger, hugCount );
-                cursor.moveToNext();
-                i++;
-            }
-
+            // hide unused views in case the number of huggers is less than 3
             for(; i < 3; i++ ){
                 mTop3Views[ i ].setVisibility( View.INVISIBLE );
             }//end for
@@ -114,8 +99,6 @@ public class HomeTabFragment extends Fragment{
         }catch( Exception e ){
             e.printStackTrace();
 
-        }finally{
-            if( cursor != null ) cursor.close();
         }
 
         mNbrHugsTextView.setText( "" + totalHugsCount );
@@ -125,23 +108,35 @@ public class HomeTabFragment extends Fragment{
 
 
     private void setHuggerView( View rowView, Hugger hugger, int hugCount ){
+
         rowView.setVisibility( View.VISIBLE );
         Hugger.LocalContactDetails details = hugger.getDetails();
 
+        TextView headerView = ( TextView ) rowView.findViewById( R.id.hug_row_header );
+        TextView subheaderView = ( TextView ) rowView.findViewById( R.id.hug_row_subheader );
+        TextView textView = ( TextView ) rowView.findViewById( R.id.hug_row_text );
+        ImageView imageView = ( ImageView ) rowView.findViewById( R.id.hug_row_image );
+
         if( details != null ){
-            ( ( TextView ) rowView.findViewById( R.id.hug_row_header ) ).setText( details.getName() );
+            headerView.setText( details.getName() );
             if( details.getPhotoUri() != null ){
-                ( ( ImageView ) rowView.findViewById( R.id.hug_row_image ) ).setImageURI( details.getPhotoUri() );
+                imageView.setImageURI( details.getPhotoUri() );
             }else{
-                ( ( ImageView ) rowView.findViewById( R.id.hug_row_image ) ).setImageResource( R.drawable.pixelheart );
+                imageView.setImageResource( R.drawable.pixelheart );
             }
         }else{
-            ( ( TextView ) rowView.findViewById( R.id.hug_row_header ) ).setText( hugger.getId() );
+            headerView.setText( hugger.getId() );
         }
 
-        ( ( TextView ) rowView.findViewById( R.id.hug_row_subheader ) ).setText( hugCount + " hugs so far." );
-        ( ( TextView ) rowView.findViewById( R.id.hug_row_text ) ).setText( "" );
+        subheaderView.setText( hugCount + " hugs so far." );
+        textView.setText( "" );
     }
 
 
+    @Override
+    public void onSharedPreferenceChanged( SharedPreferences sharedPreferences, String s ){
+        if( getString( R.string.flag_data_set_changed ).equals( s ) ){
+            populateViews();
+        }
+    }
 }//end class

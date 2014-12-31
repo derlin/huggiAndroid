@@ -5,11 +5,15 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Pair;
 import ch.eiafr.hugginess.sql.entities.Hug;
 import ch.eiafr.hugginess.sql.entities.Hugger;
 
 import java.sql.SQLException;
 import java.util.*;
+
+import static ch.eiafr.hugginess.sql.helpers.SqlHelper.HG_COL_ID_REF;
+import static ch.eiafr.hugginess.sql.helpers.SqlHelper.HUGS_TABLE;
 
 /**
  * User: lucy
@@ -23,8 +27,7 @@ public class HuggiDataSource implements AutoCloseable{
 
     private static final String[] HUGGERS_ALL_COLUMNS = new String[]{ SqlHelper.HR_COL_ID };
 
-    private static final String[] HUGS_ALL_COLUMNS = new String[]{
-            SqlHelper.HG_COL_ID,        //
+    private static final String[] HUGS_ALL_COLUMNS = new String[]{ SqlHelper.HG_COL_ID,        //
             SqlHelper.HG_COL_ID_REF,    //
             SqlHelper.HG_COL_DATE,      //
             SqlHelper.HG_COL_DUR,       //
@@ -158,6 +161,28 @@ public class HuggiDataSource implements AutoCloseable{
         Hugger hugger = cursorToHugger( cursor );
         cursor.close();
         return hugger;
+    }
+
+
+    public List<Pair<Hugger, Integer>> getTopXHuggers( int nbr ){
+        List<Pair<Hugger, Integer>> list = new ArrayList<>();
+
+        Cursor cursor = db.rawQuery( //
+                String.format( "select %s, count(*) from %s group by %s order by 2 DESC limit " + nbr, //
+                        HG_COL_ID_REF, HUGS_TABLE, HG_COL_ID_REF ), //
+                null );
+
+        cursor.moveToFirst();
+
+        while( !cursor.isAfterLast() ){
+            Pair<Hugger, Integer> pair = new Pair<>( getHugger( cursor.getString( 0 ) ), cursor.getInt( 1 ) );
+            list.add( pair );
+            cursor.moveToNext();
+        }
+
+        cursor.close();
+
+        return list;
     }
 
 

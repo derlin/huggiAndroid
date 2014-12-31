@@ -20,6 +20,7 @@ import ch.eiafr.hugginess.gui.main.MainActivity;
 import ch.eiafr.hugginess.services.bluetooth.HuggiBluetoothService;
 import ch.eiafr.hugginess.services.bluetooth.HuggiBroadcastReceiver;
 import ch.eiafr.hugginess.sql.helpers.HuggiDataSource;
+import ch.eiafr.hugginess.tools.preferences.IntEditTextPreference;
 
 import java.sql.SQLException;
 
@@ -29,14 +30,15 @@ import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
  * @author: Lucy Linder
  * @date: 01.12.2014
  */
-public class PrefsFragment extends PreferenceFragment implements Preference.OnPreferenceClickListener,
-        Preference.OnPreferenceChangeListener{
+public class PrefsFragment extends PreferenceFragment implements Preference.OnPreferenceClickListener, Preference
+        .OnPreferenceChangeListener{
 
     // TODO: disable prefs if not connected ? or better: disable whole menu
 
-    private Preference mCalibratePref, mSleepPref, mShowConfigPref, mForceSync;
-    private Preference mResetApp, mClearData;
+    private Preference mCalibratePref, mSleepPref, mShowConfigPref, mForceSyncPref;
+    private Preference mResetAppPref, mClearDataPref;
     private EditTextPreference mSentDataPref;
+    private IntEditTextPreference mTerminalMaxLinesPref;
     private ProgressDialog mProgressDialog;
 
     //-------------------------------------------------------------
@@ -78,9 +80,22 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
     public void onCreate( Bundle savedInstanceState ){
         super.onCreate( savedInstanceState );
 
+        mBroadcastReceiver.registerSelf( getActivity() );
+
         // Load the preferences from an XML resource
         addPreferencesFromResource( R.xml.activity_pref_frag );
 
+
+        // ---------- config
+
+        mShowConfigPref = findPreference( getString( R.string.pref_show_config ) );
+        mShowConfigPref.setOnPreferenceClickListener( this );
+
+        mSentDataPref = ( EditTextPreference ) findPreference( getString( R.string.pref_sent_data ) );
+        mSentDataPref.getEditText().setFilters( new InputFilter[]{ new InputFilter.LengthFilter( DATA_MAX_SIZE ) } );
+        mSentDataPref.setOnPreferenceChangeListener( this );
+
+        // ---------- commands
 
         mCalibratePref = findPreference( getString( R.string.pref_calibrate ) );
         mCalibratePref.setOnPreferenceClickListener( this );
@@ -89,23 +104,25 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
         mSleepPref.setOnPreferenceClickListener( this );
 
 
-        mShowConfigPref = findPreference( getString( R.string.pref_show_config ) );
-        mShowConfigPref.setOnPreferenceClickListener( this );
+        mForceSyncPref = findPreference( getString( R.string.pref_get_hug ) );
+        mForceSyncPref.setOnPreferenceClickListener( this );
 
-        mForceSync = findPreference( getString( R.string.pref_get_hug ) );
-        mForceSync.setOnPreferenceClickListener( this );
+        // ---------- reset
 
-        mResetApp = findPreference( getString( R.string.pref_reset_app ) );
-        mResetApp.setOnPreferenceClickListener( this );
+        mResetAppPref = findPreference( getString( R.string.pref_reset_app ) );
+        mResetAppPref.setOnPreferenceClickListener( this );
 
-        mClearData = findPreference( getString( R.string.pref_clear_db ) );
-        mClearData.setOnPreferenceClickListener( this );
+        mClearDataPref = findPreference( getString( R.string.pref_clear_db ) );
+        mClearDataPref.setOnPreferenceClickListener( this );
 
-        mSentDataPref = ( EditTextPreference ) findPreference( getString( R.string.pref_sent_data ) );
-        mSentDataPref.getEditText().setFilters( new InputFilter[]{ new InputFilter.LengthFilter( DATA_MAX_SIZE ) } );
-        mSentDataPref.setOnPreferenceChangeListener( this );
+        // ---------- misc
 
-        mBroadcastReceiver.registerSelf( getActivity() );
+
+        mTerminalMaxLinesPref = ( IntEditTextPreference ) findPreference( getString( R.string.pref_terminal_max_lines
+        ) );
+        mTerminalMaxLinesPref.setOnPreferenceChangeListener( this );
+
+
     }
 
 
@@ -150,14 +167,14 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
             mSPP.executeCommand( CMD_DUMP_ALL );
             showProgressDialog();
 
-        }else if( preference == mForceSync ){
+        }else if( preference == mForceSyncPref ){
             mSPP.executeCommand( CMD_SEND_HUGS );
             Toast.makeText( getActivity(), "Command sent!", Toast.LENGTH_SHORT ).show();
 
-        }else if( preference == mResetApp ){
+        }else if( preference == mResetAppPref ){
             showResetDialog( "Reset Application", true );
 
-        }else if( preference == mClearData ){
+        }else if( preference == mClearDataPref ){
             showResetDialog( "Clear Data", false );
 
         }
@@ -212,25 +229,40 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
     @Override
     public boolean onPreferenceChange( Preference preference, Object newValue ){
 
-        HuggiBluetoothService mSPP = HuggiBluetoothService.getInstance();
+        if( preference == mSentDataPref ){
+            HuggiBluetoothService mSPP = HuggiBluetoothService.getInstance();
 
-        if( mSPP == null || !mSPP.isConnected() ){
-            Toast.makeText( getActivity(), "Not connected...", Toast.LENGTH_SHORT ).show();
-            return true;
-        }
+            if( mSPP == null || !mSPP.isConnected() ){
+                Toast.makeText( getActivity(), "Not connected...", Toast.LENGTH_SHORT ).show();
+                return true;
+            }
 
-        String val = newValue.toString();
-        if( val.length() >= DATA_MAX_SIZE ){
-            Toast.makeText( getActivity(), "Input too long...", Toast.LENGTH_SHORT ).show();
+            String val = newValue.toString();
+            if( val.length() >= DATA_MAX_SIZE ){
+                Toast.makeText( getActivity(), "Input too long...", Toast.LENGTH_SHORT ).show();
+                return false;
+            }
+
+            mSPP.executeCommand( CMD_SET_DATA, val );
+            showProgressDialog();
+
+        }else if( preference == mTerminalMaxLinesPref ){
+            try{
+                int maxLines =  Integer.valueOf( newValue.toString() );
+                if(maxLines >= 10 ){
+                    Toast.makeText( getActivity(), "Preference saved", Toast.LENGTH_SHORT ).show();
+                    return true;
+                }
+            }catch( NullPointerException | NumberFormatException e ){
+                   ;
+            }
+            Toast.makeText( getActivity(), "Error: value should be >= 10", Toast.LENGTH_SHORT ).show();
             return false;
         }
 
-        mSPP.executeCommand( CMD_SET_DATA, val );
-        showProgressDialog();
-
         return true;
-    }
 
+    }
 
     @Override
     public void onDestroy(){

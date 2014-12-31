@@ -8,21 +8,11 @@
         <!--android:visible="false"-->
 
     <item android:id="@+id/menu_prefs"
-        android:title="Settings" />
+        android:title="App Settings" />
 
-    <item
-        android:id="@+id/menu_disconnect"
-        android:orderInCategory="100"
-        android:visible="false"
-        android:title="Disconnect" />
-
-    <item
-        android:id="@+id/menu_connect"
-        android:orderInCategory="100"
-        android:title="Connect" />
 
     <item
         android:id="@+id/menu_bt_settings"
         android:orderInCategory="100"
-        android:title="Open bluetooth settings" />
+        android:title="Bluetooth Settings" />
 </menu>

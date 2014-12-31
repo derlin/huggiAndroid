@@ -55,9 +55,7 @@ public class TerminalAdapter extends BaseAdapter{
 
         line = line.trim();
         if( mMaxLines > 0 ){
-            while( list.size() > mMaxLines ){
-                list.remove( 0 );
-            }//end while
+           trimList();
         }
 
         list.add( line );
@@ -67,6 +65,13 @@ public class TerminalAdapter extends BaseAdapter{
 
     public void clear(){
         list.clear();
+        notifyDataSetChanged();
+    }
+
+
+    public void setMaxLines( int maxLines ){
+        this.mMaxLines = maxLines;
+        trimList();
         notifyDataSetChanged();
     }
 
@@ -93,10 +98,17 @@ public class TerminalAdapter extends BaseAdapter{
     }
 
 
+    private void trimList(){
+        while( list.size() > mMaxLines ){
+            list.remove( 0 );
+        }//end while
+    }
+
     /* *****************************************************************
      * View holder
      * ****************************************************************/
-    private static class ViewHolder{
+
+     private static class ViewHolder{
         protected TextView mTextView;
     }
 }//end class

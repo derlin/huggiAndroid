@@ -11,7 +11,7 @@
         android:layout_gravity="center"
         android:adjustViewBounds="true"
         android:layout_margin="4dp"
-        android:src="@drawable/logo_android" />
+        android:src="@drawable/huggi_logo" />
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"

@@ -6,8 +6,6 @@ import android.preference.PreferenceActivity;
 import android.view.MenuItem;
 import ch.eiafr.hugginess.gui.prefs.frag.PrefsFragment;
 
-import java.util.List;
-
 /**
  * @author: Lucy Linder
  * @date: 30.11.2014
@@ -44,12 +42,6 @@ public class PrefsActivity extends PreferenceActivity{
 
         // directly display the fragment as the main content (skip headers)
         getFragmentManager().beginTransaction().replace( android.R.id.content, new PrefsFragment() ).commit();
-    }
-
-
-    @Override
-    public void onBuildHeaders( List<PreferenceActivity.Header> target ){
-        //loadHeadersFromResource( R.xml.activity_prefs_header, target );
     }
 
 

@@ -3,26 +3,26 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
-        android:title="Core configuration"
+        android:title="Core Configuration"
         android:summary="Configure your HuggiShirt behavior.">
 
-        <ch.eiafr.hugginess.tools.PreferenceValueAsSummary
+        <ch.eiafr.hugginess.tools.preferences.PreferenceValueAsSummary
             android:key="@string/pref_paired_tshirt"
-            android:summary="MAC address of your paired HuggiShirt"
-            android:title="MAC address of your HuggiShirt" />
+            android:title="MAC address of your HuggiShirt"
+            android:summary="MAC address of your paired HuggiShirt" />
 
         <Preference
             android:key="@string/pref_show_config"
-            android:title="Current configuration"
-            android:summary="View your Huggi-Shirt current configuration."
+            android:title="Current Configuration"
+            android:summary="View your HuggiShirt current configuration."
             android:persistent="false" />
 
         <EditTextPreference
             android:key="@string/pref_sent_data"
-            android:summary="Choose what is sent during a hug."
+            android:title="Data"
+            android:summary="Configure what is sent during a hug."
             android:persistent="false"
-            android:maxLength="50"
-            android:title="Data" />
+            android:maxLength="50" />
 
     </PreferenceCategory>
 
@@ -30,26 +30,26 @@
     <!--________________________-->
 
     <PreferenceCategory
-        android:title="Commands"
-        android:summary="Send commands to your Huggi-shirt.">
+        android:title="Execute Commands"
+        android:summary="Send commands to your Huggishirt.">
 
         <Preference
             android:key="@string/pref_calibrate"
+            android:title="Calibrate"
             android:summary="Recalibrate the pressure sensor"
-            android:persistent="false"
-            android:title="Calibrate" />
+            android:persistent="false" />
 
         <Preference
             android:key="@string/pref_sleep"
+            android:title="Sleep"
             android:persistent="false"
-            android:summary="Put your shirt to sleep"
-            android:title="Sleep" />
+            android:summary="Put your shirt to sleep" />
 
         <Preference
             android:key="@string/pref_get_hug"
+            android:title="Fetch Hugs"
             android:persistent="false"
-            android:summary="Manually fetch new hugs"
-            android:title="Force sync" />
+            android:summary="Manually check for new hugs" />
 
     </PreferenceCategory>
 
@@ -61,15 +61,33 @@
 
         <Preference
             android:key="@string/pref_reset_app"
+            android:title="Reset App"
             android:summary="Erase all data and start a new pairing process."
-            android:persistent="false"
-            android:title="Reset App" />
+            android:persistent="false" />
 
         <Preference
             android:key="@string/pref_clear_db"
-            android:persistent="false"
+            android:title="Clear Data"
             android:summary="Erase all hug data."
-            android:title="Clear Data" />
+            android:persistent="false" />
+
+    </PreferenceCategory>
+
+    <!--________________________-->
+
+    <PreferenceCategory
+        android:title="Miscellaneous"
+        android:summary="Miscellaneous Preferences">
+
+        <ch.eiafr.hugginess.tools.preferences.IntEditTextPreference
+            android:key="@string/pref_terminal_max_lines"
+            android:title="Max Lines in Terminal"
+            android:summary="Configure the maximum number of lines displayed in the terminal view."
+            android:inputType="number"
+            android:maxLength="3"
+
+            />
+
 
     </PreferenceCategory>
 

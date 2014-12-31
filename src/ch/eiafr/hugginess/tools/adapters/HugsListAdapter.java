@@ -65,7 +65,7 @@ public class HugsListAdapter extends ArrayAdapter<Hug>{
             if( uri != null ) viewHolder.avatar.setImageURI( uri );
         }else{
             viewHolder.header.setText( hug.getHuggerID() );
-            viewHolder.avatar.setImageResource( R.drawable.logo_android );
+            viewHolder.avatar.setImageResource( R.drawable.huggi_logo );
         }
             viewHolder.subheader.setText(String.format( "Data: %s",  hug.getData() ) );
             viewHolder.text.setText(String.format( "%s, %s",  hug.getStringDuration(),  hug.getStringDate() ) );

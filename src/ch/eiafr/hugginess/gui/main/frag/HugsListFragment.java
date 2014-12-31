@@ -1,9 +1,11 @@
 package ch.eiafr.hugginess.gui.main.frag;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 import android.telephony.PhoneNumberUtils;
@@ -29,7 +31,7 @@ import java.util.Map;
 public class HugsListFragment extends Fragment {
 
     private static final int HUGSLIST_FRAG_GROUP_ID = 'H';
-    private static final int CONTACT_DETAILS_REQUEST_CODE = 1984;
+    public static final int CONTACT_DETAILS_REQUEST_CODE = 1984;
 
     private ListView mListview;
     private List<Hug> mHugsList;
@@ -37,6 +39,7 @@ public class HugsListFragment extends Fragment {
     private HugsListAdapter mHugsListAdapter;
     private LoadDataAsyncTask mAsyncTask;
 
+    private Hugger mSelectedHugger;
 
     @Override
     public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ){
@@ -118,8 +121,8 @@ public class HugsListFragment extends Fragment {
 
         int position = ( ( AdapterView.AdapterContextMenuInfo ) item.getMenuInfo() ).position;
         Hug hug = mHugsListAdapter.getItem( position );
-        Hugger hugger = mHuggersMap.get( hug.getHuggerID() );
-        showOrSaveContact( hugger );
+        mSelectedHugger = mHuggersMap.get( hug.getHuggerID() );
+        showOrSaveContact( mSelectedHugger );
 
         return true;
     }
@@ -151,11 +154,17 @@ public class HugsListFragment extends Fragment {
         startActivityForResult( intent, CONTACT_DETAILS_REQUEST_CODE );
     }
 
+    private void notifyDataSetHasChanged(){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences( getActivity() );
+        boolean flag = prefs.getBoolean( getString( R.string.flag_data_set_changed ), false );
+        prefs.edit().putBoolean( getString( R.string.flag_data_set_changed ), !flag  ).apply();
+    }
 
     @Override
     public void onActivityResult( int requestCode, int resultCode, Intent data ){
         if( requestCode == CONTACT_DETAILS_REQUEST_CODE ){
             startLoadingData(); // refresh TODO: refresh only the hugger ?
+            notifyDataSetHasChanged();
         }else{
             super.onActivityResult( requestCode, resultCode, data );
         }

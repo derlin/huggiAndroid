@@ -6,16 +6,20 @@
     android:layout_width="match_parent"
     android:orientation="vertical">
 
-    <TextView
+    <Button
         android:id="@+id/textStatus"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:layout_marginRight="15sp"
+        android:layout_marginLeft="15sp"
+        android:layout_marginBottom="4sp"
         android:gravity="center"
         android:text="Status : Not connected"
         android:textColor="#FF0000"
         android:padding="10dp"
         android:textSize="12sp" />
+        <!--style="@style/btnStyleArsenic"-->
 
     <LinearLayout
         android:id="@+id/llpager"

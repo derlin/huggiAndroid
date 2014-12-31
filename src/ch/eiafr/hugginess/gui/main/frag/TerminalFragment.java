@@ -3,7 +3,9 @@ package ch.eiafr.hugginess.gui.main.frag;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.*;
@@ -19,15 +21,17 @@ import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.CMD_SEND_
  * @author: Lucy Linder
  * @date: 22.11.2014
  */
-public class TerminalFragment extends Fragment{
+public class TerminalFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     private static final int TERMINAL_FRAG_GROUP_ID = 'T';
+    private static final int TERMINAL_DEFAULT_MAX_LINES = 70; // max number of lines displayed
+
     private HuggiBluetoothService mSPP;
+
     private Button mSendButton;
     private EditText mEditText;
 
     private TerminalAdapter mTerminalAdapter;
-    private int mMaxLines = 70; // TODO
 
     // ----------------------------------------------------
 
@@ -74,8 +78,17 @@ public class TerminalFragment extends Fragment{
             }
         } );
 
+
+        if( mTerminalAdapter == null ){
+            // get max number of lines displayed
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences( getActivity() );
+            int mMaxLines = sharedPreferences.getInt( getString( R.string.pref_terminal_max_lines ), 75 );
+            sharedPreferences.registerOnSharedPreferenceChangeListener( this );
+
+            mTerminalAdapter = new TerminalAdapter( getActivity(), mMaxLines );
+        }
+
         ListView mListView = ( ListView ) view.findViewById( R.id.listview );
-        mTerminalAdapter = new TerminalAdapter( getActivity(), mMaxLines );
         mListView.setAdapter( mTerminalAdapter );
 
         setHasOptionsMenu( true );
@@ -121,20 +134,30 @@ public class TerminalFragment extends Fragment{
         if( item.getTitle() == "Clear" ){
             mTerminalAdapter.clear();
             return true;
-        }else if (item.getTitle().equals( "Copy to clipboard" )){
-            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo ) item.getMenuInfo();
+
+        }else if( item.getTitle().equals( "Copy to clipboard" ) ){
+            AdapterView.AdapterContextMenuInfo info = ( AdapterView.AdapterContextMenuInfo ) item.getMenuInfo();
 
             // get a handle to the clipboard service.
-            ClipboardManager clipboard = (ClipboardManager )
-                    getActivity().getSystemService( Context.CLIPBOARD_SERVICE );
+            ClipboardManager clipboard = ( ClipboardManager ) getActivity().getSystemService( Context
+                    .CLIPBOARD_SERVICE );
             String text = mTerminalAdapter.getItem( info.position );
-            ClipData clip = ClipData.newPlainText("huggi text", text);
-            clipboard.setPrimaryClip(clip);
+            ClipData clip = ClipData.newPlainText( "huggi text", text );
+            clipboard.setPrimaryClip( clip );
 
-            Toast.makeText(getActivity(), "Copied line to clipbaord", Toast.LENGTH_SHORT).show();
+            Toast.makeText( getActivity(), "Copied line to clipbaord", Toast.LENGTH_SHORT ).show();
             Log.i( getActivity().getPackageName(), "Copied text '" + text + "' to clipboard" );
         }
         return true;
     }
 
+
+    @Override
+    public void onSharedPreferenceChanged( SharedPreferences sharedPreferences, String s ){
+        if( getString( R.string.pref_terminal_max_lines ).equals( s ) ){
+            int maxLines = sharedPreferences.getInt( getString( R.string.pref_terminal_max_lines ),
+                    TERMINAL_DEFAULT_MAX_LINES );
+            mTerminalAdapter.setMaxLines( maxLines );
+        }
+    }
 }//end class
