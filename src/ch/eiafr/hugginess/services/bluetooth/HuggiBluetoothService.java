@@ -5,7 +5,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 import ch.eiafr.hugginess.sql.entities.Hug;
-import ch.eiafr.hugginess.sql.helpers.HugsDataSource;
+import ch.eiafr.hugginess.sql.helpers.HuggiDataSource;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -151,11 +151,9 @@ public class HuggiBluetoothService extends BluetoothService {
             timer = null;
         }
 
-        HugsDataSource dbs = new HugsDataSource( getApplicationContext() );
         List<Hug> newHugs = new ArrayList<>();
 
-        try{
-            dbs.open();
+        try(HuggiDataSource dbs = new HuggiDataSource( getApplicationContext(), true )){
 
             int dbCount = dbs.getHugsCount();
             int count = 0;
@@ -178,10 +176,9 @@ public class HuggiBluetoothService extends BluetoothService {
             }
 
             notifyHugsReceived( newHugs.toArray( new Hug[ count ] ) );
+
         }catch( SQLException e ){
             e.printStackTrace();
-        }finally{
-            dbs.close();
         }
 
         hugBuffer.clear();

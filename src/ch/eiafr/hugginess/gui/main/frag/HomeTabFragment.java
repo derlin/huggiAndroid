@@ -16,7 +16,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import ch.eiafr.hugginess.R;
 import ch.eiafr.hugginess.sql.entities.Hugger;
-import ch.eiafr.hugginess.sql.helpers.HuggersDataSource;
+import ch.eiafr.hugginess.sql.helpers.HuggiDataSource;
 import ch.eiafr.hugginess.sql.helpers.SqlHelper;
 
 import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
@@ -84,12 +84,10 @@ public class HomeTabFragment extends Fragment{
 
     private void populateViews(){
         SQLiteDatabase db = new SqlHelper( getActivity() ).getWritableDatabase();
-        HuggersDataSource ds = new HuggersDataSource( getActivity() );
         Cursor cursor = null;
         int totalHugsCount = 0;
 
-        try{
-            ds.open();
+        try(HuggiDataSource ds = new HuggiDataSource( getActivity(), true )){
 
             totalHugsCount = ( int ) DatabaseUtils.queryNumEntries( db, HUGS_TABLE );
 
@@ -115,8 +113,8 @@ public class HomeTabFragment extends Fragment{
 
         }catch( Exception e ){
             e.printStackTrace();
+
         }finally{
-            ds.close();
             if( cursor != null ) cursor.close();
         }
 
