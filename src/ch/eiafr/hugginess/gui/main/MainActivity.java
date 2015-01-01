@@ -32,20 +32,22 @@ import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
 
 
 /**
- * @author  Lucy Linder
- * date     22.11.2014
- * Context  Projet de semestre Hugginess, EIA-FR, I3 2014-2015
- *
  * This class is the main activity. It holds a tabs adapter displaying
- * three tabs: a summary view, a list of hugs and a terminal.
+ * three fragments: a summary view, a list of hugs and a terminal. It also has
+ * an option menu to access the preferences and about activities.
+ * <p/>
+ * creation date    22.11.2014
+ * context          Projet de semestre Hugginess, EIA-FR, I3 2014-2015
+ *
+ * @author Lucy Linder
  */
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends FragmentActivity{
 
+    private Menu menu;
+    private ActionBar mActionBar;
     private ViewPager mViewPager;
     private TabsAdapter mTabsAdapter;
     private TextView mTextStatus;
-    private Menu menu;
-    private ActionBar mActionBar;
 
     HuggiBluetoothService mSPP;
 
@@ -61,15 +63,16 @@ public class MainActivity extends FragmentActivity {
         @Override
         public void onBtHugsReceived( int cnt ){
             String msg = "Received " + cnt + " new hug";
-            if(cnt > 1) msg += "s";
+            if( cnt > 1 ) msg += "s";
             Toast.makeText( MainActivity.this, msg, Toast.LENGTH_SHORT ).show();
         }
 
 
         @Override
         public void onBtAckReceived( char cmd, boolean ok ){
-            Toast.makeText( MainActivity.this, "Cmd " + cmd + " : " + ( ok ? "ack" : "nak" ), Toast
-                    .LENGTH_SHORT ).show();
+            Toast.makeText( MainActivity.this, //
+                    String.format( "Command '%c' : %s", cmd, ok ? "success!" : "failed..." ), //
+                    Toast.LENGTH_SHORT ).show();
         }
 
 
@@ -82,17 +85,21 @@ public class MainActivity extends FragmentActivity {
 
     // ----------------------------------------------------
 
+
     @Override
-    protected void onNewIntent(Intent intent) {
+    protected void onNewIntent( Intent intent ){
         // overriding this method fixes the bugs related to
         // configuration change. The activity is no longer restarted !
-        super.onNewIntent(intent);
-        setIntent(intent);
+        super.onNewIntent( intent );
+        setIntent( intent );
     }
+
 
     protected void onCreate( Bundle savedInstanceState ){
         super.onCreate( savedInstanceState );
 
+        // -- check first launch
+        // if the paired t-shirt is not configured, switch to firstLaunchActivity (config)
         boolean isConfigured = PreferenceManager.getDefaultSharedPreferences( this ).getBoolean( getString( R.string
                 .pref_is_configured ), false );
 
@@ -106,23 +113,19 @@ public class MainActivity extends FragmentActivity {
         }
 
         // requestFeature() must be called before adding content
-        requestWindowFeature( Window.FEATURE_INDETERMINATE_PROGRESS);
-        requestWindowFeature( Window.FEATURE_PROGRESS);
+        requestWindowFeature( Window.FEATURE_INDETERMINATE_PROGRESS );
+        requestWindowFeature( Window.FEATURE_PROGRESS );
         setProgressBarIndeterminate( true );
         setProgressBarIndeterminateVisibility( true );
 
+        // -- setup view
         setContentView( R.layout.activity_main );
-
-//        checkFirstLaunch();
-
-
 
         mTextStatus = ( TextView ) findViewById( R.id.textStatus );
         mViewPager = ( ViewPager ) findViewById( R.id.pager );
 
         mActionBar = getActionBar();
         mActionBar.setNavigationMode( ActionBar.NAVIGATION_MODE_TABS );
-        //mActionBar.setDisplayOptions( 0, ActionBar.DISPLAY_SHOW_TITLE ); TODO
 
         mTextStatus.setOnClickListener( new View.OnClickListener(){
             @Override
@@ -145,15 +148,16 @@ public class MainActivity extends FragmentActivity {
             }
         } );
 
-//        checkFirstLaunch();
+        // -- asynchronously wait for the bt service to be ready
         new InitAsyncTask().execute();
     }
 
 
     @Override
     protected void onSaveInstanceState( Bundle outState ){
-        PreferenceManager.getDefaultSharedPreferences( this ).edit().putInt( "tab", mActionBar
-                .getSelectedNavigationIndex() ).commit();
+        // keep track of the current tab
+        PreferenceManager.getDefaultSharedPreferences( this ).edit() //
+                .putInt( "tab", mActionBar.getSelectedNavigationIndex() ).commit();
         super.onSaveInstanceState( outState );
     }
 
@@ -163,6 +167,7 @@ public class MainActivity extends FragmentActivity {
 
     @Override
     public void onDestroy(){
+        mBroadcastReceiver.unregisterSelf( this );
         super.onDestroy();
     }
 
@@ -176,10 +181,10 @@ public class MainActivity extends FragmentActivity {
         if( mTabsAdapter == null ){
             mTabsAdapter = new TabsAdapter( MainActivity.this, mViewPager );
             mTabsAdapter.addTab( mActionBar.newTab().setText( "Your stats" ), HomeTabFragment.class, null );
-            //DummyFragment.class, null );
             mTabsAdapter.addTab( mActionBar.newTab().setText( "Hugs" ), HugsListFragment.class, null );
             mTabsAdapter.addTab( mActionBar.newTab().setText( "Terminal" ), TerminalFragment.class, null );
 
+            // try to restore the tab displayed on last exit
             int tabIndex = PreferenceManager.getDefaultSharedPreferences( this ).getInt( "tab", 0 );
 
             if( tabIndex >= 0 && tabIndex < mTabsAdapter.getCount() ){
@@ -230,13 +235,13 @@ public class MainActivity extends FragmentActivity {
     @Override
     public void onActivityResult( int requestCode, int resultCode, Intent data ){
 
-         if( requestCode == REQUEST_ENABLE_BT ){
+        if( requestCode == REQUEST_ENABLE_BT ){
             if( resultCode == Activity.RESULT_OK ){
                 mSPP.setDeviceTargetType( DEVICE_ANDROID );
                 Toast.makeText( this, "Bluetooth enabled", Toast.LENGTH_SHORT ).show();
             }else{
                 Toast.makeText( getApplicationContext(), "Bluetooth was not enabled.", Toast.LENGTH_SHORT ).show();
-                finish();    // TODO
+                finish(); // TODO
             }
         }else{
             super.onActivityResult( requestCode, resultCode, data );
@@ -251,10 +256,10 @@ public class MainActivity extends FragmentActivity {
 
     private void connect(){
         // try to autoconnect
-        String addr = PreferenceManager.getDefaultSharedPreferences( this ).getString( getString( R.string
-                .pref_paired_tshirt ), null );
+        String addr = PreferenceManager.getDefaultSharedPreferences( this ) //
+                .getString( getString( R.string.pref_paired_tshirt ), null );
 
-        if( addr != null &&  //
+        if( addr != null &&  // don't try to connect if already connected to the right t-shirt
                 !( mSPP.isConnected() && addr.equals( mSPP.getDeviceAddress() ) ) ){
             mTextStatus.setEnabled( false );
             setProgressBarIndeterminateVisibility( true );
@@ -264,9 +269,8 @@ public class MainActivity extends FragmentActivity {
     }
 
 
-
     private void updateStatus(){
-        // TODO
+
         mTextStatus.setEnabled( true );
         setProgressBarIndeterminateVisibility( false );
 
@@ -300,16 +304,18 @@ public class MainActivity extends FragmentActivity {
 
         Context context = MainActivity.this;
 
+
         @Override
         protected Void doInBackground( Void... voids ){
 
             while( HuggiBluetoothService.getInstance() == null || menu == null ){
                 try{
+                    // wait for the service to be ready
                     Thread.sleep( 200 );
                 }catch( InterruptedException e ){
                     e.printStackTrace();
                 }
-            }//end while
+            }
 
             mSPP = HuggiBluetoothService.getInstance();
             return null;
@@ -326,6 +332,7 @@ public class MainActivity extends FragmentActivity {
 
             // register listeners
             mBroadcastReceiver.registerSelf( context );
+            // finish the view setup
             setupTabs();
             updateStatus();
             connect();

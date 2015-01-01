@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ @author	Lucy Linder
+  -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="5sp">
+
+  <TextView
+      android:layout_width="0dip"
+      android:layout_height="wrap_content"
+      android:textAppearance="?android:attr/textAppearanceMedium"
+      android:paddingStart="15sp"
+      android:layout_weight="1"
+      android:text="Col 1"
+      android:id="@+id/col1" />
+
+  <TextView
+      android:layout_width="110sp"
+      android:layout_height="wrap_content"
+      android:textAppearance="?android:attr/textAppearanceMedium"
+      android:text="Col 2"
+      android:id="@+id/col2" />
+</LinearLayout>

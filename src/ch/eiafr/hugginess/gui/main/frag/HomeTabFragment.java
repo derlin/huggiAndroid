@@ -13,24 +13,34 @@ import ch.eiafr.hugginess.R;
 import ch.eiafr.hugginess.services.bluetooth.HuggiBroadcastReceiver;
 import ch.eiafr.hugginess.sql.entities.Hugger;
 import ch.eiafr.hugginess.sql.helpers.HuggiDataSource;
+import ch.eiafr.hugginess.sql.helpers.SqlHelper;
 
 import java.util.List;
 
+
 /**
- * @author: Lucy Linder
- * @date: 22.11.2014
+ * This class is the default fragment displayed in the main activity.
+ * It advertises global statistics about the interpersonal touch interactions of the user,
+ * like the total number of hugs and the top 3 partners.
+ * <p/>
+ * creation date    22.11.2014
+ * context          Projet de semestre Hugginess, EIA-FR, I3 2014-2015
+ *
+ * @author Lucy Linder
  */
 public class HomeTabFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     private View[] mTop3Views;
     private TextView mNbrHugsTextView;
+    private TextView mHugsPerDay, mHugsPerWeek, mHugsPerMonth;
+    private TextView mHugsAvgDurations;
 
 
     // ----------------------------------------------------
 
     private HuggiBroadcastReceiver mBroadcastReceiver = new HuggiBroadcastReceiver(){
         @Override
-        public void onBtHugsReceived( int hugCOunt ){
+        public void onBtHugsReceived( int hugCount ){
             populateViews();
         }
     };
@@ -55,6 +65,20 @@ public class HomeTabFragment extends Fragment implements SharedPreferences.OnSha
         };
 
         mNbrHugsTextView = ( TextView ) view.findViewById( R.id.nbr_of_hugs );
+
+        View v = view.findViewById( R.id.hugs_per_day );
+        ( ( TextView ) v.findViewById( R.id.col1 ) ).setText( "Hugs per day" );
+        mHugsPerDay = ( TextView ) v.findViewById( R.id.col2 );
+        v = view.findViewById( R.id.hugs_per_week );
+        ( ( TextView ) v.findViewById( R.id.col1 ) ).setText( "Hugs per week" );
+        mHugsPerWeek = ( TextView ) v.findViewById( R.id.col2 );
+        v = view.findViewById( R.id.hugs_per_month );
+        ( ( TextView ) v.findViewById( R.id.col1 ) ).setText( "Hugs per month" );
+        mHugsPerMonth = ( TextView ) v.findViewById( R.id.col2 );
+
+        v = view.findViewById( R.id.hugs_durations );
+        ( ( TextView ) v.findViewById( R.id.col1 ) ).setText( "Average hug's duration" );
+        mHugsAvgDurations = ( TextView ) v.findViewById( R.id.col2 );
 
         populateViews();
 
@@ -92,9 +116,17 @@ public class HomeTabFragment extends Fragment implements SharedPreferences.OnSha
 
             // hide unused views in case the number of huggers is less than 3
             for(; i < 3; i++ ){
-                mTop3Views[ i ].setVisibility( View.INVISIBLE );
+                mTop3Views[ i ].setVisibility( View.GONE );
             }//end for
 
+            // -- get the avg hugs per day/week/month
+            int[] stats = dbs.getAvgStats();
+            mHugsPerDay.setText( "" + stats[ 0 ] );
+            mHugsPerWeek.setText( "" + stats[ 1 ] );
+            mHugsPerMonth.setText( "" + stats[ 2 ] );
+
+            int avgDurations = dbs.getAvgHugsDuration();
+            mHugsAvgDurations.setText( SqlHelper.formatDuration( avgDurations ) );
 
         }catch( Exception e ){
             e.printStackTrace();

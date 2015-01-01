@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 import android.util.Pair;
 import ch.eiafr.hugginess.sql.entities.Hug;
 import ch.eiafr.hugginess.sql.entities.Hugger;
@@ -12,6 +13,7 @@ import ch.eiafr.hugginess.sql.entities.Hugger;
 import java.sql.SQLException;
 import java.util.*;
 
+import static ch.eiafr.hugginess.sql.helpers.SqlHelper.HG_COL_DATE;
 import static ch.eiafr.hugginess.sql.helpers.SqlHelper.HG_COL_ID_REF;
 import static ch.eiafr.hugginess.sql.helpers.SqlHelper.HUGS_TABLE;
 
@@ -113,12 +115,55 @@ public class HuggiDataSource implements AutoCloseable{
         return ( int ) DatabaseUtils.queryNumEntries( db, SqlHelper.HUGS_TABLE );
     }
 
+
+    public int getAvgHugsDuration(){
+        Cursor c = db.rawQuery( "select avg(duration) from " + HUGS_TABLE, null );
+        c.moveToFirst();
+        int avg = c.getInt( 0 );
+        c.close();
+        return avg;
+    }
+
+    public int[] getAvgStats(){
+        int[] stats = new int[3];
+
+        String queryF = "select avg(cnt) from (" +
+                " select count(*) as cnt from " + HUGS_TABLE + //
+                " group by strftime('%s', " + HG_COL_DATE + " / 1000, 'unixepoch') ) alias";
+
+        Cursor c;
+
+        c = db.rawQuery( String.format( queryF, "%Y-%m-%d" ), null );
+        c.moveToFirst();
+        stats[0] = c.getInt( 0 );
+        c.close();
+
+        c = db.rawQuery( String.format( queryF, "%Y-%W" ), null );
+        c.moveToFirst();
+        stats[1] = c.getInt( 0 );
+        c.close();
+
+        c = db.rawQuery( String.format( queryF, "%Y-%m" ), null );
+        c.moveToFirst();
+        stats[2] = c.getInt( 0 );
+        c.close();
+
+        Cursor cursor = db.rawQuery( " select count(*) as cnt,  strftime('%Y-%m-%d', date / 1000, 'unixepoch') as merde from hugs" + //
+                " group by merde", null);
+        cursor.moveToFirst();
+
+        while(!cursor.isAfterLast()){
+            Log.d( "prout", cursor.getString( 1 ) + " : " + cursor.getInt( 0 ) );
+            cursor.moveToNext();
+        }
+        cursor.close();
+        return stats;
+    }
     //-------------------------------------------------------------
 
 
     private ContentValues hugToContentValues( Hug hug ){
         ContentValues values = new ContentValues();
-        //values.put( HG_COL_ID, null );
         values.put( SqlHelper.HG_COL_ID_REF, hug.getHuggerID() );
         values.put( SqlHelper.HG_COL_DUR, hug.getDuration() );
         values.put( SqlHelper.HG_COL_DATE, hug.getDate().getTime() );

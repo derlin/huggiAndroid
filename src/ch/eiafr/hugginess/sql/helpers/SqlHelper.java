@@ -43,7 +43,7 @@ public class SqlHelper extends SQLiteOpenHelper{
                     "%s INTEGER PRIMARY KEY AUTOINCREMENT," + //
                     "%s %s NOT NULL," + // hugger id
                     "%s INTEGER NOT NULL," + // date
-                    "%s INTEGER NOT NULL," + // duration
+                    "%s INTEGER NOT NULL," + // duration, in ms
                     "%s TEXT NOT NULL," + //  data
                     "FOREIGN KEY(%s) REFERENCES %s(%s)" + //
                     ");",  //
@@ -84,5 +84,14 @@ public class SqlHelper extends SQLiteOpenHelper{
         db.execSQL( "DROP TABLE IF EXISTS " + HUGGERS_TABLE );
         db.execSQL( "DROP INDEX IF EXISTS" + HUGS_INDEX );
         onCreate( db );
+    }
+
+
+    public static String formatDuration(int duration){
+        double seconds = duration * 0.001;
+        if(seconds < 60) return String.format( "%.2f s", seconds );
+        int minutes = ( int ) (seconds / 60);
+        int secs = ( int ) (seconds % 60);
+        return String.format( "%d.%d min", minutes, secs );
     }
 }//end class

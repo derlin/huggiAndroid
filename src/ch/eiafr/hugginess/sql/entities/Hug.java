@@ -1,5 +1,7 @@
 package ch.eiafr.hugginess.sql.entities;
 
+import ch.eiafr.hugginess.sql.helpers.SqlHelper;
+
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -42,11 +44,7 @@ public class Hug implements Serializable{
     }
 
     public String getStringDuration(){
-        double seconds = duration * 0.001;
-        if(seconds < 60) return String.format( "%.2f s", seconds );
-        int minutes = ( int ) (seconds / 60);
-        int secs = ( int ) (seconds % 60);
-        return String.format( "%d.%d min", minutes, secs );
+        return SqlHelper.formatDuration( duration );
     }
 
 

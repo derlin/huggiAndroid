@@ -15,6 +15,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,33 +30,49 @@ import ch.eiafr.hugginess.services.bluetooth.HuggiBroadcastReceiver;
 import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
 
 /**
- * @author: Lucy Linder
- * @date: 01.12.2014
+ * This class is used to configure the application.
+ * It works as a state machine/wizard with the following steps:
+ * <ol>
+ * <li>enable bluetooth</li>
+ * <li>choose the paired HuggiShirt</li>
+ * <li>check/change the configuration of the HuggiShirt: is the id correct?</li>
+ * <li>save the changes</li>
+ * </ol>
+ * Upon completion, the mac address of the paired HuggiShirt will be available through
+ * the shared preferences and the main activity is launched.
+ * <p/>
+ * creation date    01.12.2014
+ * context          Projet de semestre Hugginess, EIA-FR, I3 2014-2015
+ *
+ * @author Lucy Linder
  */
-public class FirstLaunchActivity extends FragmentActivity {
+public class FirstLaunchActivity extends FragmentActivity{
 
 
     //-------------------------------------------------------------
     // the bluetooth events are handled from the activity.
     // --> use this method to notify the current fragment when a
     // nak is received
-    private interface FirstLaunchFragment {
+    private interface FirstLaunchFragment{
         void onFail();
     }
     //-------------------------------------------------------------
 
+    private static final int MAX_CONNECTION_RETRIES = 3;
+
     private HuggiBluetoothService mSPP;
 
     private FirstLaunchFragment mCurrentFragment;
-    private String mHuggerId;
-    private String mShirtAddress;
+    private String mHuggerId;       // the id configured in the HuggiShirt
+    private String mShirtAddress;   // the HuggiShirt mac address
 
     private String mMyPhoneNumber;
     private boolean isMyDisconnectRequest = false;
     private boolean mIsAckFinishingActivity = false;
+
     //-------------------------------------------------------------
 
-    private HuggiBroadcastReceiver mBroadcastReceiver = new HuggiBroadcastReceiver() {
+    private HuggiBroadcastReceiver mBroadcastReceiver = new HuggiBroadcastReceiver(){
         private int mFailedCount = 0;
 
 
@@ -69,7 +86,7 @@ public class FirstLaunchActivity extends FragmentActivity {
         public void onBtDisonnected(){
             if( !isMyDisconnectRequest ){
                 Toast.makeText( FirstLaunchActivity.this, "Disconnected", Toast.LENGTH_SHORT ).show();
-                finish(); // TODO
+                finish(); // TODO: maybe a less abrupt way to handle this ?
             }else{
                 isMyDisconnectRequest = false;
             }
@@ -79,13 +96,12 @@ public class FirstLaunchActivity extends FragmentActivity {
         @Override
         public void onBtConnectionFailed(){
             mFailedCount++;
-            if( mFailedCount < 3 ){
+            // automatically retry to connect since we know the bt can
+            // be tedious
+            if( mFailedCount < MAX_CONNECTION_RETRIES ){
                 mSPP.connect( mShirtAddress );
-                Toast.makeText( FirstLaunchActivity.this, "Failed to connect, retrying", Toast.LENGTH_SHORT
-                ).show();
+                Toast.makeText( FirstLaunchActivity.this, "Failed to connect, retrying", Toast.LENGTH_SHORT ).show();
             }else{
-                // TODO: dialog
-                //                        step1CheckBluetoothEnabled();
                 mFailedCount = 0;
                 mCurrentFragment.onFail();
             }
@@ -97,7 +113,7 @@ public class FirstLaunchActivity extends FragmentActivity {
             if( line.startsWith( DATA_PREFIX + CMD_DUMP_ALL ) ){
                 String[] split = line.split( DATA_SEP );
                 if( split.length == 3 ){ // TODO
-                    // split[0] is @A
+                    // split[0] is @A, split[1] is the id, split[2] is the data
                     step3bCheckCurrentShirtConfig( split[ 1 ], split[ 2 ] );
                 }else{
                     step3bCheckCurrentShirtConfig( "", "" );
@@ -109,7 +125,7 @@ public class FirstLaunchActivity extends FragmentActivity {
         @Override
         public void onBtAckReceived( char cmd, boolean ok ){
             if( ok ){
-                if(mIsAckFinishingActivity) finalStep();
+                if( mIsAckFinishingActivity ) finalStep();
             }else{
                 mCurrentFragment.onFail();
             }
@@ -124,11 +140,11 @@ public class FirstLaunchActivity extends FragmentActivity {
     @Override
     public void onCreate( Bundle savedInstanceState ){
         super.onCreate( savedInstanceState );
-        mBroadcastReceiver.registerSelf( this );
         setContentView( R.layout.activity_firstlaunch );
+        mBroadcastReceiver.registerSelf( this );
 
         // wait until the bluetooth service has been started
-        new AsyncTask<Void, Void, Void>() {
+        new AsyncTask<Void, Void, Void>(){
 
             @Override
             protected Void doInBackground( Void... params ){
@@ -144,6 +160,7 @@ public class FirstLaunchActivity extends FragmentActivity {
                 return null;
             }
 
+
             @Override
             protected void onPostExecute( Void aVoid ){
                 step1CheckBluetoothEnabled();
@@ -156,6 +173,7 @@ public class FirstLaunchActivity extends FragmentActivity {
 
     // ----------------------------------------------------
 
+
     @Override
     protected void onNewIntent( Intent intent ){
         // overriding this method fixes the bugs related to
@@ -163,6 +181,7 @@ public class FirstLaunchActivity extends FragmentActivity {
         super.onNewIntent( intent );
         setIntent( intent );
     }
+
 
     @Override
     public void onDestroy(){
@@ -183,7 +202,7 @@ public class FirstLaunchActivity extends FragmentActivity {
             if( resultCode == Activity.RESULT_OK ){
                 step2ChooseShirt();
             }else{
-                finish();    // TODO
+                finish(); // TODO maybe a better way ?
             }
 
         }else{
@@ -199,6 +218,7 @@ public class FirstLaunchActivity extends FragmentActivity {
 
     private void step1CheckBluetoothEnabled(){
         if( !mSPP.isBluetoothEnabled() ){
+            // ask permission to enable bluetooth
             Intent btIntent = new Intent( BluetoothAdapter.ACTION_REQUEST_ENABLE );
             startActivityForResult( btIntent, REQUEST_ENABLE_BT );
         }else{
@@ -223,18 +243,22 @@ public class FirstLaunchActivity extends FragmentActivity {
 
 
     private void step3aGetCurrentShirtConfig(){
+        // get the current configuration from the shirt before
+        // displaying the next step (3b)
         mSPP.executeCommand( CMD_DUMP_ALL );
     }
 
 
     private void step3bCheckCurrentShirtConfig( String id, String data ){
         mHuggerId = id;
-
         mMyPhoneNumber = getMyPhoneNumber();
         boolean compare = PhoneNumberUtils.compare( mMyPhoneNumber, id );
         if( compare ){
+            // id and phone number are a match, we are done
             finalStep();
         }else{
+            // id and phone mismatch (or we failed to get the
+            // phone number), so ask the user
             switchFragments( new ConfirmIDFragment() );
         }
 
@@ -249,13 +273,15 @@ public class FirstLaunchActivity extends FragmentActivity {
 
     private void finalStep(){
         Toast.makeText( this, "Configuration done. Welcome !", Toast.LENGTH_SHORT ).show();
+
+        // store the HuggiShirt's mac address
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences( this ).edit();
         editor.putBoolean( getString( R.string.pref_is_configured ), true );
         editor.putString( getString( R.string.pref_paired_tshirt ), mShirtAddress );
-        editor.commit();
+        editor.apply();
 
+        // launch the main activity
         Intent intent = new Intent( this, MainActivity.class );
-        //        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.addFlags( Intent.FLAG_ACTIVITY_NO_HISTORY );
         startActivity( intent );
         finish();
@@ -263,7 +289,9 @@ public class FirstLaunchActivity extends FragmentActivity {
 
     //-------------------------------------------------------------
 
+
     private String getMyPhoneNumber(){
+        // try to get this phone number. Return null upon failure
         TelephonyManager mTelephonyMgr;
         mTelephonyMgr = ( TelephonyManager ) getSystemService( Context.TELEPHONY_SERVICE );
         return mTelephonyMgr.getLine1Number();
@@ -285,7 +313,7 @@ public class FirstLaunchActivity extends FragmentActivity {
      * *****************************************************************
      * ****************************************************************/
 
-    class ChooseTshirtFragment extends Fragment implements FirstLaunchFragment {
+    class ChooseTshirtFragment extends Fragment implements FirstLaunchFragment{
         Button mLowerButton, mUpperButton;
         ProgressBar mProgressBar;
         TextView mTextView;
@@ -294,6 +322,7 @@ public class FirstLaunchActivity extends FragmentActivity {
         @Override
         public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ){
             super.onCreateView( inflater, container, savedInstanceState );
+
             View view = inflater.inflate( R.layout.activity_firstlaunch_frag_manageshirt, container, false );
 
             mTextView = ( ( TextView ) view.findViewById( R.id.fl_textview ) );
@@ -303,7 +332,7 @@ public class FirstLaunchActivity extends FragmentActivity {
             mLowerButton = ( Button ) view.findViewById( R.id.fl_lower_button );
             mLowerButton.setText( "Open bluetooth settings" );
 
-            mLowerButton.setOnClickListener( new View.OnClickListener() {
+            mLowerButton.setOnClickListener( new View.OnClickListener(){
                 @Override
                 public void onClick( View view ){
                     Intent i = new Intent( Settings.ACTION_BLUETOOTH_SETTINGS );
@@ -315,7 +344,7 @@ public class FirstLaunchActivity extends FragmentActivity {
             mUpperButton.setText( "Select Huggi-Shirt" );
 
             view.findViewById( R.id.fl_lower_button );
-            mUpperButton.setOnClickListener( new View.OnClickListener() {
+            mUpperButton.setOnClickListener( new View.OnClickListener(){
                 @Override
                 public void onClick( View view ){
                     Intent intent = new Intent( FirstLaunchActivity.this, DeviceListActivity.class );
@@ -335,22 +364,29 @@ public class FirstLaunchActivity extends FragmentActivity {
             if( requestCode == REQUEST_CONNECT_DEVICE ){
 
                 if( resultCode == Activity.RESULT_OK ){
+
                     mShirtAddress = data.getExtras().getString( EXTRA_DEVICE_ADDRESS );
                     if( mSPP.isConnected() ){
                         if( mShirtAddress.equals( mSPP.getDeviceAddress() ) ){
+                            // already connected to the right device
                             step3aGetCurrentShirtConfig();
                             return;
                         }
+                        // not the right device, disconnect
                         isMyDisconnectRequest = true;
                         mSPP.disconnect();
                     }
 
+                    // connect to the HuggiShirt
                     mTextView.setText( "Trying to connect..." );
                     mProgressBar.setVisibility( View.VISIBLE );
                     mUpperButton.setEnabled( false );
                     mSPP.connect( mShirtAddress );
 
                 }else{
+                    // something went wrong... Simply quit the app
+                    Log.e( getPackageName(), "FirstLaunchActivity: step 2b: something went wrong " + //
+                            "in return from the devicelist activity..." );
                     finish();
                 }
             }
@@ -359,6 +395,7 @@ public class FirstLaunchActivity extends FragmentActivity {
 
         @Override
         public void onFail(){
+            // could not connect to the HuggiShirt
             mTextView.setText( "Could not connect...\nTry another device ?" );
             mProgressBar.setVisibility( View.GONE );
             mUpperButton.setEnabled( true );
@@ -370,7 +407,7 @@ public class FirstLaunchActivity extends FragmentActivity {
      * ****************************************************************/
 
     class ConfirmIDFragment extends Fragment implements FirstLaunchFragment, View.OnClickListener, TextView
-            .OnEditorActionListener {
+            .OnEditorActionListener{
 
         boolean isIdInput = false, isIdAlreadySet;
         ProgressBar mProgressBar;
@@ -384,8 +421,9 @@ public class FirstLaunchActivity extends FragmentActivity {
         @Override
         public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ){
             super.onCreateView( inflater, container, savedInstanceState );
-            final View view = inflater.inflate( R.layout.activity_firstlaunch_frag_manageshirt, container,
-                    false );
+
+            final View view = inflater.inflate( R.layout.activity_firstlaunch_frag_manageshirt, container, false );
+
             isIdAlreadySet = !( mHuggerId == null || mHuggerId.isEmpty() );
 
 
@@ -416,8 +454,8 @@ public class FirstLaunchActivity extends FragmentActivity {
 
 
         private void setConfirmView(){
-            mTextView.setText( String.format( "The current ID registered in your Huggi-Shirt is %s.\n Is it" +
-                    " " + "correct ?", mHuggerId ) );
+            mTextView.setText( String.format( "The current ID registered in your Huggi-Shirt is %s.\n" + //
+                    " Is it correct ?", mHuggerId ) );
             mUpperButton.setText( "Yep!" );
             mLowerButton.setText( "Nope, change it !" );
             mEditText.setVisibility( View.GONE );
@@ -437,6 +475,7 @@ public class FirstLaunchActivity extends FragmentActivity {
         @Override
         public void onClick( View v ){
             if( v == mLowerButton ){
+                // toggle edit and confirm view
                 if( isIdInput ){
                     setConfirmView();
                 }else{
@@ -446,8 +485,10 @@ public class FirstLaunchActivity extends FragmentActivity {
 
             }else if( v == mUpperButton ){
                 if( isIdInput ){
+                    // edit view => send the setID command to the shirt
                     updateIdCommand();
                 }else{
+                    // confirm view => user confirmed the id
                     finalStep();
                 }
             }
@@ -456,6 +497,7 @@ public class FirstLaunchActivity extends FragmentActivity {
 
         @Override
         public boolean onEditorAction( TextView textView, int i, KeyEvent keyEvent ){
+            // the user pressed enter in the ID field, try to update the id
             updateIdCommand();
             return true;
         }
@@ -465,12 +507,15 @@ public class FirstLaunchActivity extends FragmentActivity {
             if( mIsExecuting ) return;
 
             String text = mEditText.getText().toString();
+
             if( text.length() == ID_SIZE ){
+                // format ok, send the command
                 mProgressBar.setVisibility( View.VISIBLE );
-                mSPP.executeCommand( CMD_SET_ID, text );  // TODO
+                mSPP.executeCommand( CMD_SET_ID, text );
                 mIsAckFinishingActivity = true;
                 mIsExecuting = true;
             }else{
+                // wrong id format, do nothing
                 Toast.makeText( getActivity(), "Invalid phone number...", Toast.LENGTH_SHORT ).show();
             }
         }
