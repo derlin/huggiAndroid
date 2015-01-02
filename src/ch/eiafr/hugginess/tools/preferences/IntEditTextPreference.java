@@ -5,8 +5,13 @@ import android.preference.EditTextPreference;
 import android.util.AttributeSet;
 
 /**
- * @author: Lucy Linder
- * @date: 31.12.2014
+ * This class implements an EditTextPreference which holds an int value. This value will thus be persisted as an int in
+ * the shared preferences.
+ *
+ * @author Lucy Linder
+ *
+ * creation date    31.12.2014
+ * context          Projet de semestre Hugginess, EIA-FR, I3 2014-2015
  */
 public class IntEditTextPreference extends EditTextPreference{
 

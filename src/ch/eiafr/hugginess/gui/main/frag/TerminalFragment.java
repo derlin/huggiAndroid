@@ -17,14 +17,28 @@ import ch.eiafr.hugginess.tools.adapters.TerminalAdapter;
 
 import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.CMD_SEND_HUGS;
 
+
 /**
- * @author: Lucy Linder
- * @date: 22.11.2014
+ * This class is the third fragment displayed in the main activity.
+ * It acts as a terminal, displaying every line received from the HuggiShirt
+ * and allowing the user to send a raw command/string through bluetooth.
+ * <p/>
+ * Instead of appending to a TextView, we use a list with one item per line.
+ * It is not the most efficient, but it allows us to control how many lines
+ * are kept in the buffer.
+ * <p/>
+ * By clicking on an item, the user can either clear the whole terminal or copy
+ * the given line to the clipboard.
+ * <p/>
+ * creation date    22.11.2014
+ * context          Projet de semestre Hugginess, EIA-FR, I3 2014-2015
+ *
+ * @author Lucy Linder
  */
 public class TerminalFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener{
 
-    private static final int TERMINAL_FRAG_GROUP_ID = 'T';
-    private static final int TERMINAL_DEFAULT_MAX_LINES = 70; // max number of lines displayed
+    private static final int TERMINAL_FRAG_GROUP_ID = 'T'; // uniquely identify events from this list
+    private static final int TERMINAL_DEFAULT_MAX_LINES = 70; // default max number of lines displayed
 
     private HuggiBluetoothService mSPP;
 
@@ -73,6 +87,7 @@ public class TerminalFragment extends Fragment implements SharedPreferences.OnSh
         mSendButton.setOnClickListener( new View.OnClickListener(){
             public void onClick( View v ){
                 if( mEditText.getText().length() != 0 ){
+                    // send the raw command
                     mSPP.send( mEditText.getText().toString(), true );
                 }
             }
@@ -122,7 +137,7 @@ public class TerminalFragment extends Fragment implements SharedPreferences.OnSh
         super.onCreateContextMenu( menu, v, menuInfo );
         menu.setHeaderTitle( "Options" );
         menu.add( TERMINAL_FRAG_GROUP_ID, v.getId(), 0, "Clear" );
-        menu.add( TERMINAL_FRAG_GROUP_ID, v.getId(), 0, "Copy to clipboard" );
+        menu.add( TERMINAL_FRAG_GROUP_ID, v.getId(), 1, "Copy to clipboard" );
     }
 
 
@@ -141,7 +156,9 @@ public class TerminalFragment extends Fragment implements SharedPreferences.OnSh
             // get a handle to the clipboard service.
             ClipboardManager clipboard = ( ClipboardManager ) getActivity().getSystemService( Context
                     .CLIPBOARD_SERVICE );
+            // get the text to copy
             String text = mTerminalAdapter.getItem( info.position );
+            // copy to clipboard
             ClipData clip = ClipData.newPlainText( "huggi text", text );
             clipboard.setPrimaryClip( clip );
 
@@ -154,6 +171,7 @@ public class TerminalFragment extends Fragment implements SharedPreferences.OnSh
 
     @Override
     public void onSharedPreferenceChanged( SharedPreferences sharedPreferences, String s ){
+        // handle the "max lines" setting, in case it changes
         if( getString( R.string.pref_terminal_max_lines ).equals( s ) ){
             int maxLines = sharedPreferences.getInt( getString( R.string.pref_terminal_max_lines ),
                     TERMINAL_DEFAULT_MAX_LINES );

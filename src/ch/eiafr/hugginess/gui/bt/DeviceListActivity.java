@@ -33,12 +33,15 @@ import android.view.Window;
 import android.widget.*;
 import android.widget.AdapterView.OnItemClickListener;
 import ch.eiafr.hugginess.R;
-import ch.eiafr.hugginess.services.bluetooth.BluetoothConstants;
 
 import java.util.Set;
 
 @SuppressLint("NewApi")
 public class DeviceListActivity extends Activity {
+
+    // Return Intent extra from DeviceList
+    public static final String EXTRA_DEVICE_ADDRESS = "device_address";
+
     // Debugging
     private static final String TAG = "BluetoothSPP";
     private static final boolean D = true;
@@ -178,7 +181,7 @@ public class DeviceListActivity extends Activity {
 	            
 	            // Create the result Intent and include the MAC address
 	            Intent intent = new Intent();
-	            intent.putExtra( BluetoothConstants.EXTRA_DEVICE_ADDRESS, address);
+	            intent.putExtra( EXTRA_DEVICE_ADDRESS, address);
 	
 	            // Set result and finish this Activity
 	            setResult(Activity.RESULT_OK, intent);

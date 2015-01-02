@@ -36,20 +36,20 @@
         <Preference
             android:key="@string/pref_calibrate"
             android:title="Calibrate"
-            android:summary="Recalibrate the pressure sensor"
+            android:summary="Recalibrate the pressure sensor."
             android:persistent="false" />
 
         <Preference
             android:key="@string/pref_sleep"
             android:title="Sleep"
             android:persistent="false"
-            android:summary="Put your shirt to sleep" />
+            android:summary="Put your HuggiShirt to sleep." />
 
         <Preference
             android:key="@string/pref_get_hug"
             android:title="Fetch Hugs"
             android:persistent="false"
-            android:summary="Manually check for new hugs" />
+            android:summary="Manually check for new hugs." />
 
     </PreferenceCategory>
 
@@ -60,16 +60,24 @@
         android:summary="Reset your HuggiShirt or your Hugginess Application">
 
         <Preference
+            android:key="@string/pref_clear_db"
+            android:title="Clear Data"
+            android:summary="Erase all hug data."
+            android:persistent="false" />
+
+        <Preference
+            android:key="@string/pref_change_pairing"
+            android:title="Change HuggiShirt"
+            android:summary="Start a new pairing process, but keep the data."
+            android:persistent="false" />
+
+
+        <Preference
             android:key="@string/pref_reset_app"
             android:title="Reset App"
             android:summary="Erase all data and start a new pairing process."
             android:persistent="false" />
 
-        <Preference
-            android:key="@string/pref_clear_db"
-            android:title="Clear Data"
-            android:summary="Erase all hug data."
-            android:persistent="false" />
 
     </PreferenceCategory>
 

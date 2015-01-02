@@ -25,48 +25,34 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author: Lucy Linder
- * @date: 29.11.2014
+ * This class is the second fragment displayed in the main activity.
+ * It holds a list of all the hugs, sorted by date (descending).
+ * <p/>
+ * If a hugger is a local contact, its name and picture will be displayed.
+ * <p/>
+ * By clicking on an item, the user has the option of viewing or saving the contact on his phone.
+ * <p/>
+ * creation date    29.11.2014
+ * context          Projet de semestre Hugginess, EIA-FR, I3 2014-2015
+ *
+ * @author Lucy Linder
  */
-public class HugsListFragment extends Fragment {
+public class HugsListFragment extends Fragment{
 
-    private static final int HUGSLIST_FRAG_GROUP_ID = 'H';
-    public static final int CONTACT_DETAILS_REQUEST_CODE = 1984;
+    private static final int HUGSLIST_FRAG_GROUP_ID = 'H'; // uniquely identify events from this list
+    public static final int CONTACT_DETAILS_REQUEST_CODE = 1984; // used when starting the Contact Activity
 
     private ListView mListview;
+
+    private HugsListAdapter mHugsListAdapter;
     private List<Hug> mHugsList;
     private Map<String, Hugger> mHuggersMap;
-    private HugsListAdapter mHugsListAdapter;
+
     private LoadDataAsyncTask mAsyncTask;
 
-    private Hugger mSelectedHugger;
+    // ----------------------------------------------------
 
-    @Override
-    public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ){
-        super.onCreate( savedInstanceState );
-        View view = inflater.inflate( R.layout.activity_main_frag_hugslist, container, false );
-        mListview = ( ListView ) view.findViewById( R.id.tab_contact_list );
-        setHasOptionsMenu( true );
-        registerForContextMenu( mListview );
-        startLoadingData();
-        return view;
-    }
-
-
-    private void startLoadingData(){
-        if( mAsyncTask == null ){
-            mAsyncTask = new LoadDataAsyncTask();
-            mAsyncTask.execute();
-        }else{
-            Log.e( getActivity().getPackageName(), "Trying to launch async task : LoadData in " + //
-                    getClass().getName() + " while another one is executing" );
-        }
-    }//end loadDataFromDb
-
-    //-------------------------------------------------------------
-
-
-    private HuggiBroadcastReceiver mBroadcastReceiver = new HuggiBroadcastReceiver() {
+    private HuggiBroadcastReceiver mBroadcastReceiver = new HuggiBroadcastReceiver(){
         @Override
         public void onBtHugsReceived( int cnt ){
             // clean and fast : simply replace adapter and let the
@@ -76,6 +62,22 @@ public class HugsListFragment extends Fragment {
 
         }
     };
+
+    // ----------------------------------------------------
+
+
+    @Override
+    public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ){
+        super.onCreate( savedInstanceState );
+        View view = inflater.inflate( R.layout.activity_main_frag_hugslist, container, false );
+        mListview = ( ListView ) view.findViewById( R.id.tab_contact_list );
+
+        setHasOptionsMenu( true );
+        registerForContextMenu( mListview );
+
+        startLoadingData();
+        return view;
+    }
 
 
     @Override
@@ -92,7 +94,20 @@ public class HugsListFragment extends Fragment {
     }
 
 
-    // ----------------------------------------------------
+    @Override
+    public void onActivityResult( int requestCode, int resultCode, Intent data ){
+        if( requestCode == CONTACT_DETAILS_REQUEST_CODE ){
+            startLoadingData(); // refresh TODO: refresh only the hugger ?
+            notifyDataSetHasChanged();
+        }else{
+            super.onActivityResult( requestCode, resultCode, data );
+        }
+    }
+
+
+    /* *****************************************************************
+     * Handling the context menu -- show/save contact
+     * ****************************************************************/
 
 
     @Override
@@ -105,8 +120,7 @@ public class HugsListFragment extends Fragment {
             Hugger hugger = mHuggersMap.get( hug.getHuggerID() );
 
             menu.setHeaderTitle( "Options" );
-            menu.add( HUGSLIST_FRAG_GROUP_ID, v.getId(), 0, hugger.isLocalContact() ? "View contact" :
-                    "Save contact" );
+            menu.add( HUGSLIST_FRAG_GROUP_ID, v.getId(), 0, hugger.isLocalContact() ? "View contact" : "Save contact" );
 
         }catch( Exception e ){
             e.printStackTrace(); // TODO
@@ -121,14 +135,17 @@ public class HugsListFragment extends Fragment {
 
         int position = ( ( AdapterView.AdapterContextMenuInfo ) item.getMenuInfo() ).position;
         Hug hug = mHugsListAdapter.getItem( position );
-        mSelectedHugger = mHuggersMap.get( hug.getHuggerID() );
-        showOrSaveContact( mSelectedHugger );
+        Hugger selectedHugger = mHuggersMap.get( hug.getHuggerID() );
+        showOrSaveContact( selectedHugger );
 
         return true;
     }
 
+    // ----------------------------------------------------
+
 
     private void showOrSaveContact( Hugger hugger ){
+        // choose what action to take after a click on an item
         if( hugger.isLocalContact() ){
             showContact( hugger.getDetails().getContactId() );
         }else{
@@ -138,44 +155,72 @@ public class HugsListFragment extends Fragment {
 
 
     private void showContact( long contactId ){
-        Intent intent = new Intent( Intent.ACTION_VIEW, Uri.withAppendedPath( ContactsContract.Contacts
-                .CONTENT_URI, "" + contactId ) );
+        // start the show contact detail activity
+        // using startActivityForResult, we can detect when the user
+        // comes back and handle potential changes to the contact info
+        Intent intent = new Intent( Intent.ACTION_VIEW, //
+                Uri.withAppendedPath( ContactsContract.Contacts.CONTENT_URI, //
+                        "" + contactId ) );
         startActivityForResult( intent, CONTACT_DETAILS_REQUEST_CODE );
 
     }//end showContact
 
 
     private void saveContact( String phone ){
+        // ask the system to launch the "save contact" view.
+        // Using startActivityForResult, we can detect when the user
+        // comes back and handle potential changes to the contact info
         phone = PhoneNumberUtils.formatNumber( "0041" + phone.substring( 1 ) );
 
-        Intent intent = new Intent( ContactsContract.Intents.SHOW_OR_CREATE_CONTACT, Uri.parse( "tel:" +
-                phone ) );
+        Intent intent = new Intent( ContactsContract.Intents.SHOW_OR_CREATE_CONTACT, Uri.parse( "tel:" + phone ) );
+        // we decided to force the contact creation (on certain device, without this flag, the OS just
+        // displays the list of contact and the user need a lot of clicks to get the job done)
+        // TODO really a good idea ?
         intent.putExtra( ContactsContract.Intents.EXTRA_FORCE_CREATE, true );
         startActivityForResult( intent, CONTACT_DETAILS_REQUEST_CODE );
     }
 
+    // ----------------------------------------------------
+
+
     private void notifyDataSetHasChanged(){
+        // toggle a field in the sharedpreference when a contact might have changed.
+        // This allows other activities/fragments displaying huggers to listen for
+        // changes and update their view (see the HomeTabFragment for example)
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences( getActivity() );
         boolean flag = prefs.getBoolean( getString( R.string.flag_data_set_changed ), false );
-        prefs.edit().putBoolean( getString( R.string.flag_data_set_changed ), !flag  ).apply();
+        prefs.edit().putBoolean( getString( R.string.flag_data_set_changed ), !flag ).apply();
     }
 
-    @Override
-    public void onActivityResult( int requestCode, int resultCode, Intent data ){
-        if( requestCode == CONTACT_DETAILS_REQUEST_CODE ){
-            startLoadingData(); // refresh TODO: refresh only the hugger ?
-            notifyDataSetHasChanged();
+
+
+    /* *****************************************************************
+     * Data loading
+     * ****************************************************************/
+
+
+    private void startLoadingData(){
+        // query the database in a background process
+        if( mAsyncTask == null ){
+            mAsyncTask = new LoadDataAsyncTask();
+            mAsyncTask.execute();
+
         }else{
-            super.onActivityResult( requestCode, resultCode, data );
+            // a task was already running (should not happen)
+            Log.e( getActivity().getPackageName(), "Trying to launch async task : LoadData in " + //
+                    getClass().getName() + " while another one is executing" );
         }
-    }
+    }//end loadDataFromDb
 
     // ----------------------------------------------------
 
-    private class LoadDataAsyncTask extends AsyncTask<Void, Void, Boolean> {
+    // asynctask which loads data from the sql database in the background and
+    // then setup the adapter and listview
+    private class LoadDataAsyncTask extends AsyncTask<Void, Void, Boolean>{
 
         @Override
         protected Boolean doInBackground( Void... voids ){
+            // query the database in the background
             try( HuggiDataSource ds = new HuggiDataSource( getActivity(), true ) ){
 
                 mHuggersMap = ds.getHuggersMap();
@@ -197,12 +242,14 @@ public class HugsListFragment extends Fragment {
 
         @Override
         protected void onPostExecute( Boolean ok ){
+            // update the view: setup the list and adapter
             super.onPostExecute( ok );
             if( ok ){
                 assert mHugsList != null && mHuggersMap != null;
+                // always recreate an adapter TODO maybe a better way ?
                 mHugsListAdapter = new HugsListAdapter( getActivity(), mHugsList, mHuggersMap );
                 mListview.setAdapter( mHugsListAdapter );
-                mAsyncTask = null; // finished
+                mAsyncTask = null; // mark the job as done
             }
         }
     }

@@ -48,6 +48,7 @@ import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
  */
 public class FirstLaunchActivity extends FragmentActivity{
 
+    public static final int REQUEST_CONNECT_DEVICE = 384; // request code for the enable bt activity
 
     //-------------------------------------------------------------
     // the bluetooth events are handled from the activity.
@@ -246,6 +247,7 @@ public class FirstLaunchActivity extends FragmentActivity{
         // get the current configuration from the shirt before
         // displaying the next step (3b)
         mSPP.executeCommand( CMD_DUMP_ALL );
+        // TODO: and if the lilypad does not run the right program ?
     }
 
 
@@ -365,7 +367,7 @@ public class FirstLaunchActivity extends FragmentActivity{
 
                 if( resultCode == Activity.RESULT_OK ){
 
-                    mShirtAddress = data.getExtras().getString( EXTRA_DEVICE_ADDRESS );
+                    mShirtAddress = data.getExtras().getString( DeviceListActivity.EXTRA_DEVICE_ADDRESS );
                     if( mSPP.isConnected() ){
                         if( mShirtAddress.equals( mSPP.getDeviceAddress() ) ){
                             // already connected to the right device

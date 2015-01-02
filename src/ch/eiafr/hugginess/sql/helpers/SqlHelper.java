@@ -6,8 +6,18 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 /**
- * @author: Lucy Linder
- * @date: 26.11.2014
+ * This class is in charge of the sqlite database, which holds two tables: hugs and huggers.
+ * We also need an index table to ensure uniqueness of the tuple [hugger id, hug duration, hug date].
+ * <p/>
+ * hugs
+ * cannot have the same hugger ID, date and duration (hence the index table).
+ * <p/>
+ * The hugger table contains only the hugger ID, in the form of a swiss phone number (0XXXXXXXXX).
+ * <p/>
+ * creation date    26.11.2014
+ * context          Projet de semestre Hugginess, EIA-FR, I3 2014-2015
+ *
+ * @author Lucy Linder
  */
 public class SqlHelper extends SQLiteOpenHelper{
     // database
@@ -52,14 +62,7 @@ public class SqlHelper extends SQLiteOpenHelper{
 
     private static final String CREATE_UNIQUE_INDEX = String.format( //
             "CREATE UNIQUE INDEX %s ON %s (%s,%s,%s)", //
-            HUGS_INDEX, HUGS_TABLE, HG_COL_ID_REF, HG_COL_DUR, HG_COL_DATE
-    );
-
-
-    public static void main( String[] args ){
-        System.out.println( CREATE_HUGGERS_TABLE );
-        System.out.println( CREATE_HUGS_TABLE );
-    }//end main
+            HUGS_INDEX, HUGS_TABLE, HG_COL_ID_REF, HG_COL_DUR, HG_COL_DATE );
 
 
     public SqlHelper( Context context ){
@@ -87,11 +90,4 @@ public class SqlHelper extends SQLiteOpenHelper{
     }
 
 
-    public static String formatDuration(int duration){
-        double seconds = duration * 0.001;
-        if(seconds < 60) return String.format( "%.2f s", seconds );
-        int minutes = ( int ) (seconds / 60);
-        int secs = ( int ) (seconds % 60);
-        return String.format( "%d.%d min", minutes, secs );
-    }
 }//end class

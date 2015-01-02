@@ -33,6 +33,21 @@ import java.io.InputStream;
  * @author: Lucy Linder
  * @date: 31.12.2014
  */
+
+/**
+ * This class displays some information about the project and is launched
+ * when the user clicks the "About" menu in the actionbar.
+ * <p/>
+ * The actual text is loaded from a raw resource file, res/raw/about.html, which is
+ * rendered using a WebView.
+ * <p/>
+ * Note: since the activity is rather simple, we do not need to use a fragment.
+ * <p/>
+ * creation date    31.12.2014
+ * context          Projet de semestre Hugginess, EIA-FR, I3 2014-2015
+ *
+ * @author Lucy Linder
+ */
 public class AboutActivity extends Activity{
 
     @Override
@@ -49,8 +64,10 @@ public class AboutActivity extends Activity{
         if( content != null ) webView.loadData( content, "text/html", "utf-8" );
     }
 
+
     @Override
     public boolean onOptionsItemSelected( MenuItem item ){
+        // return to the main activity on home press
         switch( item.getItemId() ){
             case android.R.id.home:{
                 onBackPressed();
@@ -63,13 +80,15 @@ public class AboutActivity extends Activity{
 
     // ----------------------------------------------------
 
+
     private String loadRawResource( int resId ){
+        // read and return the content of a raw resource file
+
         InputStream inputStream = getResources().openRawResource( resId );
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        int i;
 
         try{
-            i = inputStream.read();
+            int i = inputStream.read();
             while( i != -1 ){
                 byteArrayOutputStream.write( i );
                 i = inputStream.read();

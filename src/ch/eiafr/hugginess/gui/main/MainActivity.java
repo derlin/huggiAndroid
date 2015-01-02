@@ -1,7 +1,6 @@
 package ch.eiafr.hugginess.gui.main;
 
 import android.app.ActionBar;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -209,6 +208,7 @@ public class MainActivity extends FragmentActivity{
 
 
     public boolean onOptionsItemSelected( MenuItem item ){
+        // handle the menu clicks in the actionbar
         int id = item.getItemId();
         switch( id ){
 
@@ -231,22 +231,22 @@ public class MainActivity extends FragmentActivity{
 
     // ----------------------------------------------------
 
-
-    @Override
-    public void onActivityResult( int requestCode, int resultCode, Intent data ){
-
-        if( requestCode == REQUEST_ENABLE_BT ){
-            if( resultCode == Activity.RESULT_OK ){
-                mSPP.setDeviceTargetType( DEVICE_ANDROID );
-                Toast.makeText( this, "Bluetooth enabled", Toast.LENGTH_SHORT ).show();
-            }else{
-                Toast.makeText( getApplicationContext(), "Bluetooth was not enabled.", Toast.LENGTH_SHORT ).show();
-                finish(); // TODO
-            }
-        }else{
-            super.onActivityResult( requestCode, resultCode, data );
-        }
-    }
+//
+//    @Override
+//    public void onActivityResult( int requestCode, int resultCode, Intent data ){
+//
+//        if( requestCode == REQUEST_ENABLE_BT ){
+//            if( resultCode == Activity.RESULT_OK ){
+//                mSPP.setDeviceTargetType( DEVICE_ANDROID );
+//                Toast.makeText( this, "Bluetooth enabled", Toast.LENGTH_SHORT ).show();
+//            }else{
+//                Toast.makeText( getApplicationContext(), "Bluetooth was not enabled.", Toast.LENGTH_SHORT ).show();
+//                finish(); // TODO
+//            }
+//        }else{
+//            super.onActivityResult( requestCode, resultCode, data );
+//        }
+//    }
 
 
     /* *****************************************************************
@@ -255,7 +255,7 @@ public class MainActivity extends FragmentActivity{
 
 
     private void connect(){
-        // try to autoconnect
+        // try to connect to the paied t-shirt
         String addr = PreferenceManager.getDefaultSharedPreferences( this ) //
                 .getString( getString( R.string.pref_paired_tshirt ), null );
 
@@ -270,7 +270,8 @@ public class MainActivity extends FragmentActivity{
 
 
     private void updateStatus(){
-
+        // discard the progressbar and update the status button text
+        // after a bluetooth event
         mTextStatus.setEnabled( true );
         setProgressBarIndeterminateVisibility( false );
 
@@ -299,7 +300,8 @@ public class MainActivity extends FragmentActivity{
     /* *****************************************************************
      * async
      * ****************************************************************/
-
+    // asynctask which waits in the background for the bluetooth service to
+    // be ready. Once ok, it finishes to setup the view.
     private class InitAsyncTask extends AsyncTask<Void, Void, Void>{
 
         Context context = MainActivity.this;
@@ -324,6 +326,7 @@ public class MainActivity extends FragmentActivity{
 
         @Override
         protected void onPostExecute( Void aVoid ){
+            // finish to setup the view
             super.onPostExecute( aVoid );
 
             if( !mSPP.isBluetoothEnabled() ){

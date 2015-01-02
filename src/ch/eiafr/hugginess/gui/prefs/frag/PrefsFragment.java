@@ -26,9 +26,21 @@ import java.sql.SQLException;
 
 import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
 
+
 /**
- * @author: Lucy Linder
- * @date: 01.12.2014
+ * This class is the fragment responsible for the App Settings.
+ * <p/>
+ * There are three kind of settings:
+ * <ul>
+ * <li>Core Settings: id of the HuggiShirt and data the former sends during a hug</li>
+ * <li>Commands: allow the user to send predefined commands to the HuggiSHirt</li>
+ * <li>Reset: clear database, reset application</li>
+ * </ul>
+ * <p/>
+ * creation date    01.12.2014
+ * context          Projet de semestre Hugginess, EIA-FR, I3 2014-2015
+ *
+ * @author Lucy Linder
  */
 public class PrefsFragment extends PreferenceFragment implements Preference.OnPreferenceClickListener, Preference
         .OnPreferenceChangeListener{
@@ -36,7 +48,7 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
     // TODO: disable prefs if not connected ? or better: disable whole menu
 
     private Preference mCalibratePref, mSleepPref, mShowConfigPref, mForceSyncPref;
-    private Preference mResetAppPref, mClearDataPref;
+    private Preference mChangeHSPref, mResetAppPref, mClearDataPref;
     private EditTextPreference mSentDataPref;
     private IntEditTextPreference mTerminalMaxLinesPref;
     private ProgressDialog mProgressDialog;
@@ -46,35 +58,27 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
     private HuggiBroadcastReceiver mBroadcastReceiver = new HuggiBroadcastReceiver(){
         @Override
         public void onBtAckReceived( char cmd, boolean ok ){
+            // no notification, since the main activity is still running
+            // --> a toast will appear
             dismissProgressDialog();
-            Toast.makeText( getActivity(), "Cmd " + cmd + " : " + ( ok ? "ack" : "nak" ), Toast.LENGTH_SHORT ).show();
         }
 
 
         @Override
         public void onBtDataReceived( String line ){
             if( line.startsWith( DATA_PREFIX + CMD_DUMP_ALL ) ){
+                // current configuration is in the format @A!id!data
                 dismissProgressDialog();
                 String[] split = line.split( DATA_SEP );
-                if( split.length == 3 ){ // TODO
+                if( split.length == 3 ){
                     // split[0] is @A
-                    showConfigDialog( split[ 1 ], split[ 2 ] );
+                    showCurrentConfigDialog( split[ 1 ], split[ 2 ] );
                 }
             }
         }
     };
 
     //-------------------------------------------------------------
-
-
-    private void showConfigDialog( String id, String data ){
-        // TODO nicer ?
-        AlertDialog.Builder builder = new AlertDialog.Builder( getActivity() );
-        builder.setTitle( "Current configuration" );
-        builder.setMessage( String.format( "\nID: %s\nDATA: %s\n", id, data ) );
-        builder.setCancelable( true );
-        builder.create().show();
-    }
 
 
     public void onCreate( Bundle savedInstanceState ){
@@ -109,6 +113,9 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
 
         // ---------- reset
 
+        mChangeHSPref = findPreference( getString( R.string.pref_change_pairing ) );
+        mChangeHSPref.setOnPreferenceClickListener( this );
+
         mResetAppPref = findPreference( getString( R.string.pref_reset_app ) );
         mResetAppPref.setOnPreferenceClickListener( this );
 
@@ -121,94 +128,44 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
         mTerminalMaxLinesPref = ( IntEditTextPreference ) findPreference( getString( R.string.pref_terminal_max_lines
         ) );
         mTerminalMaxLinesPref.setOnPreferenceChangeListener( this );
-
-
-    }
-
-
-    private void showProgressDialog(){
-        if( mProgressDialog == null ){
-            mProgressDialog = new ProgressDialog( getActivity() );
-            mProgressDialog.setIndeterminate( true );
-        }
-
-        mProgressDialog.setMessage( "Executing..." );
-        mProgressDialog.show();
-
-    }
-
-
-    private void dismissProgressDialog(){
-        if( mProgressDialog != null && mProgressDialog.isShowing() ){
-            mProgressDialog.dismiss();
-        }
     }
 
 
     @Override
-    public boolean onPreferenceClick( Preference preference ){
-
-        HuggiBluetoothService mSPP = HuggiBluetoothService.getInstance();
-
-        if( mSPP == null || !mSPP.isConnected() ){
-            Toast.makeText( getActivity(), "Not connected...", Toast.LENGTH_SHORT ).show();
-            return true;
-        }
-
-        if( preference == mCalibratePref ){
-            mSPP.executeCommand( CMD_CALIBRATE );
-            showProgressDialog();
-
-        }else if( preference == mSleepPref ){
-            mSPP.executeCommand( CMD_SLEEP );
-            Toast.makeText( getActivity(), "Command sent!", Toast.LENGTH_SHORT ).show();
-
-        }else if( preference == mShowConfigPref ){
-            mSPP.executeCommand( CMD_DUMP_ALL );
-            showProgressDialog();
-
-        }else if( preference == mForceSyncPref ){
-            mSPP.executeCommand( CMD_SEND_HUGS );
-            Toast.makeText( getActivity(), "Command sent!", Toast.LENGTH_SHORT ).show();
-
-        }else if( preference == mResetAppPref ){
-            showResetDialog( "Reset Application", true );
-
-        }else if( preference == mClearDataPref ){
-            showResetDialog( "Clear Data", false );
-
-        }
-
-        return true;
+    public void onDestroy(){
+        mBroadcastReceiver.unregisterSelf( getActivity() );
+        super.onDestroy();
     }
 
 
-    private void restart( int delay ){
-        Intent launchIntent = new Intent( getActivity(), MainActivity.class );
-        PendingIntent intent = PendingIntent.getActivity( getActivity().getApplicationContext(), 0, launchIntent, 0 );
-        AlarmManager manager = ( AlarmManager ) getActivity().getSystemService( Context.ALARM_SERVICE );
-        manager.set( AlarmManager.RTC, System.currentTimeMillis() + delay, intent );
-        System.exit( 2 );
+    // ---------------------------------------------------- dialogs
+
+
+    private void showCurrentConfigDialog( String id, String data ){
+        // display a simple dialog with the configuration (id + data)
+        AlertDialog.Builder builder = new AlertDialog.Builder( getActivity() );
+        builder.setTitle( "Current configuration" );
+        builder.setMessage( String.format( "\nID: %s\nDATA: %s\n", id, data ) );
+        builder.setCancelable( true );
+        builder.create().show();
     }
 
 
-    private void clearData(){
-        try( HuggiDataSource dbs = new HuggiDataSource( getActivity(), true ) ){
-            dbs.clearAllData();
-        }catch( SQLException e ){
-            Log.e( getActivity().getPackageName(), "Preferences -- clearData: SQL Exception occurred: " + e );
-        }
-    }
-
-
-    private void showResetDialog( String title, final boolean resetApp ){
+    private void showResetDialog( String title, final boolean clearData, final boolean resetApp ){
+        // ask for confirmation before clearing data
+        // param: title the dialog title (clear data or reset app)
+        // param: clearData whether or not to clear the database
+        // param: resetApp whether or not to clear the HuggiShirt mac address/start a new pairing process
         new AlertDialog.Builder( getActivity() ) //
-                .setTitle( title ).setMessage( "This action cannot be undone. All data will be lost.\n" + //
+                .setTitle( title ).setMessage( "This action cannot be undone. Data might be lost.\n" + //
                 "Proceed anyway ?" ) //
                 .setPositiveButton( "Yep!", new DialogInterface.OnClickListener(){
                     @Override
                     public void onClick( DialogInterface dialog, int which ){
-                        clearData();
+                        if( clearData ){
+                            // clear the sqlite database
+                            clearData();
+                        }
                         if( resetApp ){
                             // set the configured flag to false => first launch activity will
                             // show up upon restart
@@ -226,20 +183,123 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
     }
 
 
+    private void showProgressDialog(){
+        // show a progress dialog to notify the user a command is
+        // executing
+        if( mProgressDialog == null ){
+            mProgressDialog = new ProgressDialog( getActivity() );
+            mProgressDialog.setIndeterminate( true );
+        }
+
+        mProgressDialog.setMessage( "Executing..." );
+        mProgressDialog.show();
+
+    }
+
+
+    private void dismissProgressDialog(){
+        // dismiss the progress dialog after a ack/nak has been received
+        if( mProgressDialog != null && mProgressDialog.isShowing() ){
+            mProgressDialog.dismiss();
+        }
+    }
+
+    // --------------------------------------- reset utils
+
+
+    private void clearData(){
+        // clear the database
+        try( HuggiDataSource dbs = new HuggiDataSource( getActivity(), true ) ){
+            dbs.clearAllData();
+        }catch( SQLException e ){
+            Log.e( getActivity().getPackageName(), "Preferences -- clearData: SQL Exception occurred: " + e );
+        }
+    }
+
+
+    private void restart( int delay ){
+        // restart the whole application (to be used after a reset)
+        // param: delay, how many ms to wait before restart
+
+        if( delay < 1 ) delay = 1; // we are never too careful
+
+        // schedule a restart
+        Intent launchIntent = new Intent( getActivity(), MainActivity.class );
+        PendingIntent intent = PendingIntent.getActivity( getActivity().getApplicationContext(), 0, launchIntent, 0 );
+        AlarmManager manager = ( AlarmManager ) getActivity().getSystemService( Context.ALARM_SERVICE );
+        manager.set( AlarmManager.RTC, System.currentTimeMillis() + delay, intent );
+        System.exit( 2 ); // shut down the app
+    }
+
+    // ----------------------------------- preference listeners
+
+
+    @Override
+    public boolean onPreferenceClick( Preference preference ){
+        // handle the command and reset preferences
+
+        HuggiBluetoothService mSPP = HuggiBluetoothService.getInstance();
+
+
+        // -- reset
+
+        if( preference == mChangeHSPref ){
+            showResetDialog( "Change HuggiShirt", false, true );
+
+        }else if( preference == mClearDataPref ){
+            showResetDialog( "Clear Data", true, false );
+
+        }else if( preference == mResetAppPref ){
+            showResetDialog( "Reset Application", true, true );
+
+        }else{ // commands need a bluetooth connection
+
+            if( mSPP == null || !mSPP.isConnected() ){
+                // do nothing if the bluetooth connection is off
+                Toast.makeText( getActivity(), "Error: HuggiShirt not connected.", Toast.LENGTH_SHORT ).show();
+                return true;
+            }
+
+            // -- commands
+
+            if( preference == mCalibratePref ){
+                mSPP.executeCommand( CMD_CALIBRATE );
+                showProgressDialog();
+
+            }else if( preference == mSleepPref ){
+                mSPP.executeCommand( CMD_SLEEP );
+                Toast.makeText( getActivity(), "Command sent!", Toast.LENGTH_SHORT ).show();
+
+            }else if( preference == mShowConfigPref ){
+                mSPP.executeCommand( CMD_DUMP_ALL );
+                showProgressDialog();
+
+            }else if( preference == mForceSyncPref ){
+                mSPP.executeCommand( CMD_SEND_HUGS );
+                Toast.makeText( getActivity(), "Command sent!", Toast.LENGTH_SHORT ).show();
+
+            }
+        }
+        return true;
+    }
+
+
     @Override
     public boolean onPreferenceChange( Preference preference, Object newValue ){
+        // handle preferences with input (configure HuggiShirt data + terminal nbr of lines)
 
         if( preference == mSentDataPref ){
             HuggiBluetoothService mSPP = HuggiBluetoothService.getInstance();
 
             if( mSPP == null || !mSPP.isConnected() ){
-                Toast.makeText( getActivity(), "Not connected...", Toast.LENGTH_SHORT ).show();
+                Toast.makeText( getActivity(), "Error: HuggiShirt not connected.", Toast.LENGTH_SHORT ).show();
                 return true;
             }
 
             String val = newValue.toString();
             if( val.length() >= DATA_MAX_SIZE ){
-                Toast.makeText( getActivity(), "Input too long...", Toast.LENGTH_SHORT ).show();
+                Toast.makeText( getActivity(), "Error: input too long (max. " + DATA_MAX_SIZE + ")!", Toast
+                        .LENGTH_SHORT ).show();
                 return false;
             }
 
@@ -248,26 +308,20 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
 
         }else if( preference == mTerminalMaxLinesPref ){
             try{
-                int maxLines =  Integer.valueOf( newValue.toString() );
-                if(maxLines >= 10 ){
-                    Toast.makeText( getActivity(), "Preference saved", Toast.LENGTH_SHORT ).show();
+                int maxLines = Integer.valueOf( newValue.toString() );
+                if( maxLines >= 10 ){
+                    Toast.makeText( getActivity(), "Preference saved.", Toast.LENGTH_SHORT ).show();
                     return true;
                 }
             }catch( NullPointerException | NumberFormatException e ){
-                   ;
+                ;
             }
-            Toast.makeText( getActivity(), "Error: value should be >= 10", Toast.LENGTH_SHORT ).show();
+            Toast.makeText( getActivity(), "Error: value too small (min. 10)", Toast.LENGTH_SHORT ).show();
             return false;
         }
 
         return true;
 
-    }
-
-    @Override
-    public void onDestroy(){
-        mBroadcastReceiver.unregisterSelf( getActivity() );
-        super.onDestroy();
     }
 
 

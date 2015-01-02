@@ -9,20 +9,45 @@ import android.support.v4.content.LocalBroadcastManager;
 import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
 
 /**
- * @author: Lucy Linder
- * @date: 14.12.2014
+ * This class is a helper to manage local broadcasts from the {@link ch.eiafr.hugginess.services.bluetooth
+ * .HuggiBluetoothService}.
+ * <p/>
+ * It intercepts all the bluetooth broadcasts, extracts the parameters (if any) and defines one method par
+ * event type, allowing you to handle and filter events easily.
+ * <p/>
+ * To use it, simply create a child, implement the method that you are interested in and call {@link
+ * #registerSelf(android.content.Context)}.
+ * Don't forget to unregister after use (you could for example register in the activity's onCreate method and
+ * unregister in it onDestroy).
+ *
+ * @author Lucy Linder
+ *         <p/>
+ *         creation date    14.12.2014
+ *         context          Projet de semestre Hugginess, EIA-FR, I3 2014-2015
+ * @see ch.eiafr.hugginess.services.bluetooth.HuggiBluetoothService
  */
-public class HuggiBroadcastReceiver extends BroadcastReceiver{
+public abstract class HuggiBroadcastReceiver extends BroadcastReceiver{
 
     private static final IntentFilter INTENT_FILTER = new IntentFilter( BTSERVICE_INTENT_FILTER );
 
     // ----------------------------------------------------
 
+
+    /**
+     * Register this receiver to the local broadcast manager to start receiving events.
+     *
+     * @param context the context
+     */
     public void registerSelf( Context context ){
         LocalBroadcastManager.getInstance( context ).registerReceiver( this, INTENT_FILTER );
     }
 
 
+    /**
+     * Unregister this receiver from the local broadcast manager to stop receiving events.
+     *
+     * @param context the context
+     */
     public void unregisterSelf( Context context ){
         LocalBroadcastManager.getInstance( context ).unregisterReceiver( this );
     }
@@ -30,26 +55,52 @@ public class HuggiBroadcastReceiver extends BroadcastReceiver{
     // ----------------------------------------------------
 
 
+    /** Called when the bluetooth adapter is turned on. * */
     public void onBtTurnedOn(){ }
 
 
+    /** Called when the bluetooth adapter is turned off. * */
     public void onBtTurnedOff(){ }
 
 
+    /** Called upon a successful connection. * */
     public void onBtConnected(){ }
 
 
+    /** Called upon a disconnection. * */
     public void onBtDisonnected(){ }
 
+
+    /** Called when the bluetooth state changed (turn on/off, connected/disconnected). * */
     public void onBtStateChanged(){}
 
+
+    /** Called upon an unsuccessful connection. * */
     public void onBtConnectionFailed(){ }
 
+
+    /**
+     * Called when a new line has been received.
+     *
+     * @param line the new line, without linebreak.
+     */
     public void onBtDataReceived( String line ){ }
 
-    public void onBtHugsReceived( int hugCOunt ){ }
+
+    /**
+     * Called when some hugs have been received (and saved to the database).
+     *
+     * @param hugCount the number of new hugs
+     */
+    public void onBtHugsReceived( int hugCount ){ }
 
 
+    /**
+     * Called when an ack/nak has been received.
+     *
+     * @param cmd the acknowledged command
+     * @param ok  the ack status. True = ack, false = nak.
+     */
     public void onBtAckReceived( char cmd, boolean ok ){ }
 
     /* *****************************************************************
@@ -59,6 +110,7 @@ public class HuggiBroadcastReceiver extends BroadcastReceiver{
 
     @Override
     public void onReceive( Context context, Intent intent ){
+        // handle the different kind of events
         switch( intent.getStringExtra( EXTRA_EVT_TYPE ) ){
 
             case EVT_BT_TURNED_ON:
@@ -87,7 +139,7 @@ public class HuggiBroadcastReceiver extends BroadcastReceiver{
 
             case EVT_DATA_RECEIVED:
                 String line = intent.getStringExtra( EVT_EXTRA_DATA );
-                onBtDataReceived(line);
+                onBtDataReceived( line );
                 break;
 
             case EVT_HUGS_RECEIVED:
@@ -103,7 +155,6 @@ public class HuggiBroadcastReceiver extends BroadcastReceiver{
         }
 
     }
-
 
 
 }//end class

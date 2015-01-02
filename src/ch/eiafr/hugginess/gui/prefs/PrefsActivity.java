@@ -7,8 +7,16 @@ import android.view.MenuItem;
 import ch.eiafr.hugginess.gui.prefs.frag.PrefsFragment;
 
 /**
- * @author: Lucy Linder
- * @date: 30.11.2014
+ * This class is the preferences activity, which is launched when the user
+ * clicks on "App Settings" in the actionbar menu.
+ * <p/>
+ * It only handles the home back button: the settings management is done
+ * in the fragment (see {@link ch.eiafr.hugginess.gui.prefs.frag.PrefsFragment}).
+ * <p/>
+ * creation date    30.11.2014
+ * context          Projet de semestre Hugginess, EIA-FR, I3 2014-2015
+ *
+ * @author Lucy Linder
  */
 public class PrefsActivity extends PreferenceActivity{
 

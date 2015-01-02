@@ -13,29 +13,43 @@ import java.util.*;
 import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
 
 /**
- * @author: Lucy Linder
- * @date: 28.11.2014
+ * This class is a bluetooth service designed specifically for the Hugginess application.
+ * It works as a singleton, startup service (i.e. start it once at the application start and
+ * use {@link #getInstance()} to get a reference to it from activities).
+ * <p/>
+ * Main features:
+ * <ul>
+ * <li>Add new events, like hugs received or ack received</li>
+ * <li>Ease the notification process by providing a {@link ch.eiafr.hugginess.services.bluetooth
+ * .HuggiBroadcastReceiver}</li>
+ * <li>Handle the incoming hugs by adding them to the sqlite database</li>
+ * <li>Provide simple methods to send commands to the HuggiShirt</li>
+ * </ul>
+ *
+ * @author Lucy Linder
+ *         <p/>
+ *         creation date    28.11.2014
+ *         context          Projet de semestre Hugginess, EIA-FR, I3 2014-2015
+ * @see ch.eiafr.hugginess.services.bluetooth.BluetoothConstants
+ * @see ch.eiafr.hugginess.services.bluetooth.HuggiBroadcastReceiver
  */
-public class HuggiBluetoothService extends BluetoothService {
+public class HuggiBluetoothService extends BluetoothService{
 
-    private static final int MAX_DEQUE_SIZE = 30;
-
-    private ReceivedDataBuffer mReceivedDataBuffer = new ReceivedDataBuffer(MAX_DEQUE_SIZE);
-
-    public List<Hug> hugBuffer = new ArrayList<>();
-    private Timer timer = null;
-
-    private IBinder myBinder = new BTBinder();
-
-    private static final long BT_TIMEOUT = 2400;
 
     private static HuggiBluetoothService INSTANCE;
+    private IBinder myBinder = new BTBinder();
 
-    // ----------------------------------------------------
+    private Timer timer = null; // for ack and receive hugs
+    public List<Hug> hugBuffer = new ArrayList<>();
+
+
+    // ----------------------------------- singleton
+
     public static HuggiBluetoothService getInstance(){
         return INSTANCE;
     }
-    // ----------------------------------------------------
+
+    // ----------------------------------- overrides
 
 
     @Override
@@ -51,8 +65,9 @@ public class HuggiBluetoothService extends BluetoothService {
         super.onDestroy();
     }
 
+    // ----------------------------------- binding
 
-    public class BTBinder extends Binder {
+    public class BTBinder extends Binder{
         public HuggiBluetoothService getService(){
             return HuggiBluetoothService.this;
         }
@@ -64,24 +79,26 @@ public class HuggiBluetoothService extends BluetoothService {
         return myBinder;
     }
 
+    // ----------------------------------- notifications
+
 
     @Override
     protected void notifyDataReceived( String data ){
 
-        synchronized( this ){
-            mReceivedDataBuffer.appendLine( data );
-        }
-
         if( data.startsWith( DATA_PREFIX + CMD_SEND_HUGS ) ){
+            // one hug has been received
             Hug hug = Hug.parseHug( data );
 
             if( hug != null ){
+                // send ack
                 send( ACK_PREFIX.getBytes() );
                 hugBuffer.add( hug );
 
+                // first, get all the hugs and then save them
+                // since the save process might take some time...
                 if( timer == null ){
                     timer = new Timer();
-                    timer.schedule( new TimerTask() {
+                    timer.schedule( new TimerTask(){
                         @Override
                         public void run(){
                             insertHugs();
@@ -91,6 +108,7 @@ public class HuggiBluetoothService extends BluetoothService {
             }
 
         }else if( data.matches( ACK_PREFIX + "[A-Z][#|?]" ) ){
+            // format: #<char cmd>[#|?], ack is #, nak is ?
             notifyAckReceived( data.charAt( 1 ), data.charAt( 2 ) == '#' );
         }
 
@@ -98,97 +116,10 @@ public class HuggiBluetoothService extends BluetoothService {
 
     }
 
-    // ----------------------------------------------------
-
-    public String getLastReceivedData(){
-        synchronized( this ){
-            return mReceivedDataBuffer.getAllLines();
-        }
-    }
-    // ----------------------------------------------------
-
-
-    public void executeCommand( char CMD, String data ){
-        send( String.format( "%s%s%s%s", CMD_PREFIX, CMD, DATA_PREFIX, data ), true );
-    }
-
-
-    public void executeCommand( char CMD ){
-        send( CMD_PREFIX + CMD, true );
-    }
-
-    /*
-    public void getHugs(){
-        send( CMD_PREFIX + CMD_SEND_HUGS, true );
-    }
-
-
-    public void doEcho( String s ){
-        send( String.format( "%s%s%s%s", CMD_PREFIX, CMD_ECHO, DATA_PREFIX, s ) , true );
-    }
-
-    public void setId( String s ){
-        send( String.format( "%s%s%s%s", CMD_PREFIX, CMD_SET_ID, DATA_PREFIX, s ) , true );
-    }
-
-    public void setName( String s ){
-        send( String.format( "%s%s%s%s", CMD_PREFIX, CMD_SET_DATA, DATA_PREFIX, s ) , true );
-    }
-
-    public void doCalibrate( ){
-        send( CMD_PREFIX + CMD_CALIBRATE, true );
-    }
-    */
-
-
-    // ----------------------------------------------------
-
-
-    private void insertHugs(){
-
-        if( timer != null ){
-            timer.cancel();
-            timer = null;
-        }
-
-        List<Hug> newHugs = new ArrayList<>();
-
-        try(HuggiDataSource dbs = new HuggiDataSource( getApplicationContext(), true )){
-
-            int dbCount = dbs.getHugsCount();
-            int count = 0;
-
-            for( Hug hug : hugBuffer ){
-                Log.d( TAG, String.format( "Hug with %s, data = %s, dur = %d\n",//
-                        hug.getHuggerID(), hug.getData(), hug.getDuration() ) );
-
-                if( dbs.addHug( hug ) ){
-                    count++;
-                    newHugs.add( hug );
-                }else{
-                    // error while inserting hug => key violation
-                    Log.d( TAG, "Hug not unique !" );
-                }
-            }//end for
-
-            if( dbs.getHugsCount() - dbCount != count ){
-                Log.e( TAG, "OUPS: counts do not match: " + ( dbs.getHugsCount() - dbCount ) + ":" + count );
-            }
-
-            notifyHugsReceived( newHugs.toArray( new Hug[ count ] ) );
-
-        }catch( SQLException e ){
-            e.printStackTrace();
-        }
-
-        hugBuffer.clear();
-
-    }
-
-    // ----------------------------------------------------
 
 
     private void notifyHugsReceived( Hug[] newHugs ){
+        // add the number of hugs and the list as extras
         Intent i = getIntent( EVT_HUGS_RECEIVED );
         i.putExtra( EVT_EXTRA_HUGS_CNT, newHugs.length );
         i.putExtra( EVT_EXTRA_HUGS_LIST, newHugs );
@@ -197,53 +128,81 @@ public class HuggiBluetoothService extends BluetoothService {
 
 
     private void notifyAckReceived( char cmd, boolean ok ){
+        // add the command and status as extra
         Intent i = getIntent( EVT_ACK_RECEIVED );
         i.putExtra( EVT_EXTRA_ACK_CMD, cmd );
         i.putExtra( EVT_EXTRA_ACK_STATUS, ok );
         mBroadcastManager.sendBroadcast( i );
     }
 
-    //-------------------------------------------------------------
 
-    private static class ReceivedDataBuffer extends ArrayDeque<String> {
-        private int limit = -1;
+    // ----------------------------------- commands
 
 
-        public ReceivedDataBuffer( int limit ){
-            super();
-            this.limit = limit;
-        }
-
-
-        public void appendLine( String line ){
-            if(!line.endsWith( "\n" )) line += "\n";
-            if( limit > 0 ){
-                while( size() > limit ){
-                    removeFirst();
-                }//end while
-            }
-
-            addLast( line );
-        }
-
-
-        public String getAllLines(){
-            StringBuilder builder = new StringBuilder();
-            for( Iterator<String> iter = iterator(); iter.hasNext(); ){
-                builder.append( iter.next() );
-            }
-
-            return builder.toString();
-        }
-
-
-        public int getLimit(){
-            return limit;
-        }
-
-
-        public void setLimit( int limit ){
-            this.limit = limit;
-        }
+    /**
+     * Send a command with parameters to the HuggiShirt.
+     * @param CMD  the command (see {@link ch.eiafr.hugginess.services.bluetooth.BluetoothConstants})
+     * @param data the parameters
+     */
+    public void executeCommand( char CMD, String data ){
+        send( String.format( "%s%s%s%s", CMD_PREFIX, CMD, DATA_PREFIX, data ), true );
     }
+
+
+    /**
+     * Send a command to the HuggiShirt.
+     * @param CMD  the command (see {@link ch.eiafr.hugginess.services.bluetooth.BluetoothConstants})
+     */
+    public void executeCommand( char CMD ){
+        send( CMD_PREFIX + CMD, true );
+    }
+
+
+    // ----------------------------------- hugs management
+
+
+    private void insertHugs(){
+        // cancel the timer task
+        if( timer != null ){
+            timer.cancel();
+            timer = null;
+        }
+
+        List<Hug> newHugs = new ArrayList<>();
+
+        try( HuggiDataSource dbs = new HuggiDataSource( getApplicationContext(), true ) ){
+
+            int dbCount = dbs.getHugsCount();
+            int count = 0; // keep track of the number of inserted hugs
+
+            for( Hug hug : hugBuffer ){
+                Log.d( getPackageName(), TAG + String.format( "Hug with %s, data = %s, dur = %d\n",//
+                        hug.getHuggerID(), hug.getData(), hug.getDuration() ) );
+
+                if( dbs.addHug( hug ) ){
+                    count++;
+                    newHugs.add( hug );
+                }else{
+                    // error while inserting hug => key violation
+                    Log.d( getPackageName(), TAG + " In insert new hug: '" + hug + "' not unique !" );
+                }
+            }//end for
+
+            if( dbs.getHugsCount() - dbCount != count ){
+                Log.e( getPackageName(), TAG + " Error: counts do not match: " + ( dbs.getHugsCount() - dbCount ) +
+                        ":" + count );
+            }
+
+            // notifies the change
+            notifyHugsReceived( newHugs.toArray( new Hug[ count ] ) );
+
+        }catch( SQLException e ){
+            Log.e( getPackageName(), "Error: sql exception while inserting new hugs " + e );
+        }
+
+        hugBuffer.clear(); // cleanup
+
+    }
+
+
 }//end class

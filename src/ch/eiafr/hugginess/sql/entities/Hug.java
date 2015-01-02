@@ -1,22 +1,31 @@
 package ch.eiafr.hugginess.sql.entities;
 
-import ch.eiafr.hugginess.sql.helpers.SqlHelper;
-
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * @author: Lucy Linder
- * @date: 26.11.2014
+ * This class is a DAO entity for a Hug.
+ * In addition to the standard properties, it also provide some static utilities to work with hugs (@see #parseHug and
+ * #formatDuration).
+ * <p/>
+ * creation date    26.11.2014
+ * context          Projet de semestre Hugginess, EIA-FR, I3 2014-2015
+ *
+ * @author Lucy Linder
  */
 public class Hug implements Serializable{
+
+    private static final SimpleDateFormat PRETTY_DATE_FORMAT = new SimpleDateFormat( "dd.MM.yy HH:mm" );
+
     private int id;
     private String huggerID;
     private int duration;
     private Date date;
     private String data;
-    public static final SimpleDateFormat PRETTY_DATE_FORMAT = new SimpleDateFormat("dd.MM.yy HH:mm");
+
+
+    // ---------------------------------------- Getter and setters
 
 
     public int getId(){
@@ -43,8 +52,9 @@ public class Hug implements Serializable{
         return duration;
     }
 
+
     public String getStringDuration(){
-        return SqlHelper.formatDuration( duration );
+        return formatDuration( duration );
     }
 
 
@@ -78,7 +88,7 @@ public class Hug implements Serializable{
     }
 
 
-    // ----------------------------------------------------
+    // ------------------------------------- overrides
 
 
     @Override
@@ -88,12 +98,11 @@ public class Hug implements Serializable{
 
         Hug hug = ( Hug ) o;
 
-        if( duration != hug.duration ) return false;
-        if( id != hug.id ) return false;
-        if( !date.equals( hug.date ) ) return false;
-        if( !huggerID.equals( hug.huggerID ) ) return false;
+        return duration == hug.duration && //
+                id == hug.id && //
+                huggerID == hug.huggerID && //
+                date.equals( hug.date );
 
-        return true;
     }
 
 
@@ -107,9 +116,19 @@ public class Hug implements Serializable{
     }
 
 
-    // ----------------------------------------------------
+    /* *****************************************************************
+     * Static utils
+     * ****************************************************************/
 
 
+    /**
+     * Extract a hug from a string in the format:
+     * <pre>    @H!hugger_id!data!duration</pre>.
+     * The date will be set to {@link Date#Date}.
+     * <p/>
+     * @param s the string
+     * @return the extracted hug, or null if the string does not match the format.
+     */
     public static Hug parseHug( String s ){
 
         String[] split = s.split( "!" );
@@ -125,4 +144,27 @@ public class Hug implements Serializable{
 
         return hug;
     }
+
+
+    /**
+     * Helper to work with duration field.
+     *
+     * @param duration a duration in ms.
+     * @return a string properly formatted. The duration is expressed in seconds or minutes, depending on the actual
+     * value.
+     * <p/>
+     * Example:
+     * <p></p><pre><blockquote>
+     *      formatDuration(1400); // will return "1.40 s"
+     *      formatDuration(1400); // will return "1 min 40 s"
+     * </blockquote></pre></p>
+     */
+    public static String formatDuration( int duration ){
+        double seconds = duration * 0.001;
+        if( seconds < 60 ) return String.format( "%.2f s", seconds );
+        int minutes = ( int ) ( seconds / 60 );
+        int secs = ( int ) ( seconds % 60 );
+        return String.format( "%d min %d s", minutes, secs );
+    }
+
 }//end class

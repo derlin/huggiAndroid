@@ -11,9 +11,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import ch.eiafr.hugginess.R;
 import ch.eiafr.hugginess.services.bluetooth.HuggiBroadcastReceiver;
+import ch.eiafr.hugginess.sql.entities.Hug;
 import ch.eiafr.hugginess.sql.entities.Hugger;
 import ch.eiafr.hugginess.sql.helpers.HuggiDataSource;
-import ch.eiafr.hugginess.sql.helpers.SqlHelper;
 
 import java.util.List;
 
@@ -55,10 +55,14 @@ public class HomeTabFragment extends Fragment implements SharedPreferences.OnSha
 
     public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ){
         View view = inflater.inflate( R.layout.activity_main_frag_hometab, container, false );
+
+        // listeners
         PreferenceManager.getDefaultSharedPreferences( getActivity() ).registerOnSharedPreferenceChangeListener( this );
         mBroadcastReceiver.registerSelf( getActivity() );
+
         setHasOptionsMenu( true );
 
+        // view setup
         mTop3Views = new View[]{ view.findViewById( R.id.top_hugger_1 ), //
                 view.findViewById( R.id.top_hugger_2 ),           //
                 view.findViewById( R.id.top_hugger_3 )            //
@@ -77,7 +81,7 @@ public class HomeTabFragment extends Fragment implements SharedPreferences.OnSha
         mHugsPerMonth = ( TextView ) v.findViewById( R.id.col2 );
 
         v = view.findViewById( R.id.hugs_durations );
-        ( ( TextView ) v.findViewById( R.id.col1 ) ).setText( "Average hug's duration" );
+        ( ( TextView ) v.findViewById( R.id.col1 ) ).setText( "Avg hug's duration" );
         mHugsAvgDurations = ( TextView ) v.findViewById( R.id.col2 );
 
         populateViews();
@@ -88,6 +92,7 @@ public class HomeTabFragment extends Fragment implements SharedPreferences.OnSha
 
     @Override
     public void onDestroyView(){
+        // unregister listeners
         mBroadcastReceiver.unregisterSelf( getActivity() );
         PreferenceManager.getDefaultSharedPreferences( getActivity() ) //
                 .unregisterOnSharedPreferenceChangeListener( this );
@@ -98,7 +103,7 @@ public class HomeTabFragment extends Fragment implements SharedPreferences.OnSha
 
 
     private void populateViews(){
-
+        // update the stats after a change
         int totalHugsCount = 0;
 
         try( HuggiDataSource dbs = new HuggiDataSource( getActivity(), true ) ){
@@ -126,7 +131,7 @@ public class HomeTabFragment extends Fragment implements SharedPreferences.OnSha
             mHugsPerMonth.setText( "" + stats[ 2 ] );
 
             int avgDurations = dbs.getAvgHugsDuration();
-            mHugsAvgDurations.setText( SqlHelper.formatDuration( avgDurations ) );
+            mHugsAvgDurations.setText( Hug.formatDuration( avgDurations ) );
 
         }catch( Exception e ){
             e.printStackTrace();
@@ -140,7 +145,7 @@ public class HomeTabFragment extends Fragment implements SharedPreferences.OnSha
 
 
     private void setHuggerView( View rowView, Hugger hugger, int hugCount ){
-
+        // populate one "hugger view" with data
         rowView.setVisibility( View.VISIBLE );
         Hugger.LocalContactDetails details = hugger.getDetails();
 
@@ -167,6 +172,8 @@ public class HomeTabFragment extends Fragment implements SharedPreferences.OnSha
 
     @Override
     public void onSharedPreferenceChanged( SharedPreferences sharedPreferences, String s ){
+        // this flag is toggled by the HugsListFragment when a local contact might have changed
+        // in this case, the 3 three huggers might have different names/pictures
         if( getString( R.string.flag_data_set_changed ).equals( s ) ){
             populateViews();
         }

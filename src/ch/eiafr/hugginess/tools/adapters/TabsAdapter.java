@@ -1,10 +1,5 @@
 package ch.eiafr.hugginess.tools.adapters;
 
-/**
- * @author: Lucy Linder
- * @date: 22.11.2014
- */
-
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
 import android.content.Context;
@@ -29,14 +24,20 @@ import static android.app.ActionBar.TabListener;
  * view to show as the tab content.  It listens to changes in tabs, and takes
  * care of switch to the correct paged in the ViewPager whenever the selected
  * tab changes.
+ * <p/>
+ * based on the code of package com.example.android.supportv4.app
+ * <p/>
+ * creation date    29.11.2014
+ * context          Projet de semestre Hugginess, EIA-FR, I3 2014-2015
  */
-public class TabsAdapter extends FragmentPagerAdapter implements TabListener, ViewPager.OnPageChangeListener {
+
+public class TabsAdapter extends FragmentPagerAdapter implements TabListener, ViewPager.OnPageChangeListener{
     private final Context mContext;
     private final ActionBar mActionBar;
     private final ViewPager mViewPager;
     private final ArrayList<TabInfo> mTabs = new ArrayList<>();
 
-    static final class TabInfo {
+    static final class TabInfo{
         private final Class<?> clss;
         private final Bundle args;
 
