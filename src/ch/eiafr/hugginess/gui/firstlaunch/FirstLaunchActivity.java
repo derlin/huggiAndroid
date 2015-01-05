@@ -128,6 +128,7 @@ public class FirstLaunchActivity extends FragmentActivity{
             if( ok ){
                 if( mIsAckFinishingActivity ) finalStep();
             }else{
+                Log.d( getPackageName(), "First launch: NAK received for command " + cmd );
                 mCurrentFragment.onFail();
             }
 

@@ -1,5 +1,6 @@
 package ch.eiafr.hugginess.gui.main.frag;
 
+import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -73,6 +74,16 @@ public class TerminalFragment extends Fragment implements SharedPreferences.OnSh
 
     // ----------------------------------------------------
 
+
+    public TerminalFragment(){
+        System.out.println();
+    }
+
+
+    @Override
+    public void onAttach( Activity activity ){
+        super.onAttach( activity );
+    }
 
     @Override
     public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ){

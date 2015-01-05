@@ -159,7 +159,7 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
         new AlertDialog.Builder( getActivity() ) //
                 .setTitle( title ).setMessage( "This action cannot be undone. Data might be lost.\n" + //
                 "Proceed anyway ?" ) //
-                .setPositiveButton( "Yep!", new DialogInterface.OnClickListener(){
+                .setPositiveButton( "Yes", new DialogInterface.OnClickListener(){
                     @Override
                     public void onClick( DialogInterface dialog, int which ){
                         if( clearData ){
@@ -177,7 +177,7 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
                     }
 
                 } )  //
-                .setNegativeButton( "Nope", null ) //
+                .setNegativeButton( "Cancel", null ) //
                 .show();
 
     }

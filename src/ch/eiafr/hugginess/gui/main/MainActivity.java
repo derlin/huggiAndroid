@@ -188,9 +188,13 @@ public class MainActivity extends FragmentActivity{
 
             if( tabIndex >= 0 && tabIndex < mTabsAdapter.getCount() ){
                 mActionBar.setSelectedNavigationItem( tabIndex );
+            }else{
+                mActionBar.setSelectedNavigationItem( 0 );
             }
         }
     }
+
+
 
     /* *****************************************************************
      * menu

@@ -488,8 +488,11 @@ public class BluetoothService extends Service{
                     int data = mmInStream.read();
                     if( data == '\n' ){
                         // notify a new line has been received
-                        notifyDataReceived( builder.toString() );
+                        String line = builder.toString();
                         builder.delete( 0, builder.length() ); // clear buffer
+
+                        Log.v( getPackageName(), "BT service: received '" + line + "'" );
+                        notifyDataReceived( line );
                     }else{
                         builder.append( ( char ) data );
                     }
