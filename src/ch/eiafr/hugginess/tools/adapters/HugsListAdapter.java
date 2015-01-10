@@ -81,22 +81,32 @@ public class HugsListAdapter extends ArrayAdapter<Hug>{
 
         Hug hug = hugs.get( position );
         Hugger hugger = huggers.get( hug.getHuggerID() );
+        Uri imageUri = null;
 
         if( hugger.isLocalContact() ){
             // populate the view with info from the local contact database
             Hugger.LocalContactDetails details = hugger.getDetails();
             viewHolder.header.setText( details.getName() );
+            imageUri = details.getPhotoUri();
 
-            Uri uri = details.getPhotoUri();
-            if( uri != null ) viewHolder.avatar.setImageURI( uri );
         }else{
             // use default
             viewHolder.header.setText( hug.getHuggerID() );
-            viewHolder.avatar.setImageResource( R.drawable.huggi_logo );
         }
+
         viewHolder.subheader.setText( String.format( "Data: %s", hug.getData() ) );
         viewHolder.text.setText( String.format( "%s, %s", hug.getStringDuration(), hug.getStringDate() ) );
+        setImage( viewHolder, imageUri );
+
         return convertView;
+    }
+
+    private void setImage(ViewHolder viewHolder, Uri uri){
+        if( uri == null ){  // set default image
+            viewHolder.avatar.setImageResource( R.drawable.huggi_logo );
+        }else{
+            viewHolder.avatar.setImageURI( uri );
+        }
     }
 
 
