@@ -144,8 +144,8 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
     private void showCurrentConfigDialog( String id, String data ){
         // display a simple dialog with the configuration (id + data)
         AlertDialog.Builder builder = new AlertDialog.Builder( getActivity() );
-        builder.setTitle( "Current configuration" );
-        builder.setMessage( String.format( "\nID: %s\nDATA: %s\n", id, data ) );
+        builder.setTitle( getString( R.string.activity_pref_text_current_config ) );
+        builder.setMessage( String.format( getString( R.string.activity_pref_text_current_config_format ), id, data ) );
         builder.setCancelable( true );
         builder.create().show();
     }
@@ -157,9 +157,8 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
         // param: clearData whether or not to clear the database
         // param: resetApp whether or not to clear the HuggiShirt mac address/start a new pairing process
         new AlertDialog.Builder( getActivity() ) //
-                .setTitle( title ).setMessage( "This action cannot be undone. Data might be lost.\n" + //
-                "Proceed anyway ?" ) //
-                .setPositiveButton( "Yes", new DialogInterface.OnClickListener(){
+                .setTitle( title ).setMessage( getString( R.string.activity_pref_dialog_confirm_delete ) ) //
+                .setPositiveButton( getString( R.string.yes ), new DialogInterface.OnClickListener(){
                     @Override
                     public void onClick( DialogInterface dialog, int which ){
                         if( clearData ){
@@ -177,7 +176,7 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
                     }
 
                 } )  //
-                .setNegativeButton( "Cancel", null ) //
+                .setNegativeButton( getString( R.string.cancel ), null ) //
                 .show();
 
     }
@@ -191,7 +190,7 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
             mProgressDialog.setIndeterminate( true );
         }
 
-        mProgressDialog.setMessage( "Executing..." );
+        mProgressDialog.setMessage( getString( R.string.executing ) );
         mProgressDialog.show();
 
     }
@@ -244,19 +243,20 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
         // -- reset
 
         if( preference == mChangeHSPref ){
-            showResetDialog( "Change HuggiShirt", false, true );
+            showResetDialog( getString( R.string.activity_pref_dialog_title_change_shirt ), false, true );
 
         }else if( preference == mClearDataPref ){
-            showResetDialog( "Clear Data", true, false );
+            showResetDialog( getString( R.string.activity_pref_dialog_title_clear_data ), true, false );
 
         }else if( preference == mResetAppPref ){
-            showResetDialog( "Reset Application", true, true );
+            showResetDialog( getString( R.string.activity_pref_dialog_title_reset_app ), true, true );
 
         }else{ // commands need a bluetooth connection
 
             if( mSPP == null || !mSPP.isConnected() ){
                 // do nothing if the bluetooth connection is off
-                Toast.makeText( getActivity(), "Error: HuggiShirt not connected.", Toast.LENGTH_SHORT ).show();
+                Toast.makeText( getActivity(), getString( R.string.activity_pref_toast_error_not_connected ), //
+                        Toast.LENGTH_SHORT ).show();
                 return true;
             }
 
@@ -268,7 +268,7 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
 
             }else if( preference == mSleepPref ){
                 mSPP.executeCommand( CMD_SLEEP );
-                Toast.makeText( getActivity(), "Command sent!", Toast.LENGTH_SHORT ).show();
+                Toast.makeText( getActivity(), getString( R.string.command_sent ), Toast.LENGTH_SHORT ).show();
 
             }else if( preference == mShowConfigPref ){
                 mSPP.executeCommand( CMD_DUMP_ALL );
@@ -276,7 +276,7 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
 
             }else if( preference == mForceSyncPref ){
                 mSPP.executeCommand( CMD_SEND_HUGS );
-                Toast.makeText( getActivity(), "Command sent!", Toast.LENGTH_SHORT ).show();
+                Toast.makeText( getActivity(), getString( R.string.command_sent ), Toast.LENGTH_SHORT ).show();
 
             }
         }
@@ -292,14 +292,16 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
             HuggiBluetoothService mSPP = HuggiBluetoothService.getInstance();
 
             if( mSPP == null || !mSPP.isConnected() ){
-                Toast.makeText( getActivity(), "Error: HuggiShirt not connected.", Toast.LENGTH_SHORT ).show();
+                Toast.makeText( getActivity(), getString( R.string.activity_pref_toast_error_not_connected ),//
+                        Toast.LENGTH_SHORT ).show();
                 return true;
             }
 
             String val = newValue.toString();
             if( val.length() >= DATA_MAX_SIZE ){
-                Toast.makeText( getActivity(), "Error: input too long (max. " + DATA_MAX_SIZE + ")!", Toast
-                        .LENGTH_SHORT ).show();
+                Toast.makeText( getActivity(), String.format(//
+                                getString( R.string.activity_pref_toast_error_input_too_long ), DATA_MAX_SIZE ),//
+                        Toast.LENGTH_SHORT ).show();
                 return false;
             }
 
@@ -310,13 +312,15 @@ public class PrefsFragment extends PreferenceFragment implements Preference.OnPr
             try{
                 int maxLines = Integer.valueOf( newValue.toString() );
                 if( maxLines >= 10 ){
-                    Toast.makeText( getActivity(), "Preference saved.", Toast.LENGTH_SHORT ).show();
+                    Toast.makeText( getActivity(), getString( R.string.activity_pref_toast_prefs_saved ),//
+                            Toast.LENGTH_SHORT ).show();
                     return true;
                 }
             }catch( NullPointerException | NumberFormatException e ){
                 ;
             }
-            Toast.makeText( getActivity(), "Error: value too small (min. 10)", Toast.LENGTH_SHORT ).show();
+            Toast.makeText( getActivity(), getString( R.string.activity_pref_toast_error_value_too_small ),//
+                    Toast.LENGTH_SHORT ).show();
             return false;
         }
 

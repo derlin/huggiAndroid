@@ -69,19 +69,24 @@ public class HomeTabFragment extends Fragment implements SharedPreferences.OnSha
         };
 
         mNbrHugsTextView = ( TextView ) view.findViewById( R.id.nbr_of_hugs );
-
         View v = view.findViewById( R.id.hugs_per_day );
-        ( ( TextView ) v.findViewById( R.id.col1 ) ).setText( "Hugs per day" );
+        ( ( TextView ) v.findViewById( R.id.col1 ) ) //
+                .setText( getString( R.string.activity_main_frag_home_hugs_per_day ) );
+
         mHugsPerDay = ( TextView ) v.findViewById( R.id.col2 );
         v = view.findViewById( R.id.hugs_per_week );
-        ( ( TextView ) v.findViewById( R.id.col1 ) ).setText( "Hugs per week" );
+        ( ( TextView ) v.findViewById( R.id.col1 ) ) //
+                .setText( getString( R.string.activity_main_frag_home_hugs_per_week ) );
+
         mHugsPerWeek = ( TextView ) v.findViewById( R.id.col2 );
         v = view.findViewById( R.id.hugs_per_month );
-        ( ( TextView ) v.findViewById( R.id.col1 ) ).setText( "Hugs per month" );
-        mHugsPerMonth = ( TextView ) v.findViewById( R.id.col2 );
+        ( ( TextView ) v.findViewById( R.id.col1 ) ) //
+                .setText( getString( R.string.activity_main_frag_home_hugs_per_month ) );
 
+        mHugsPerMonth = ( TextView ) v.findViewById( R.id.col2 );
         v = view.findViewById( R.id.hugs_durations );
-        ( ( TextView ) v.findViewById( R.id.col1 ) ).setText( "Avg hug's duration" );
+        ( ( TextView ) v.findViewById( R.id.col1 ) ) //
+                .setText( getString( R.string.activity_main_frag_home_avg_duration ) );
         mHugsAvgDurations = ( TextView ) v.findViewById( R.id.col2 );
 
         populateViews();
@@ -165,7 +170,8 @@ public class HomeTabFragment extends Fragment implements SharedPreferences.OnSha
             headerView.setText( hugger.getId() );
         }
 
-        subheaderView.setText( hugCount + " hugs so far." );
+        subheaderView.setText( String.format( //
+                getString( R.string.activity_main_frag_home_top3_subheader ), hugCount ) );
         textView.setText( "" );
     }
 

@@ -9,7 +9,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Welcome to Hugginess"
+        android:text="@string/activity_firstlaunch_text_welcome"
         android:id="@+id/fl_textview"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="30sp" />

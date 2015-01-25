@@ -85,6 +85,7 @@ public class TerminalFragment extends Fragment implements SharedPreferences.OnSh
         super.onAttach( activity );
     }
 
+
     @Override
     public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ){
         View view = inflater.inflate( R.layout.activity_main_frag_terminal, container, false );
@@ -146,9 +147,13 @@ public class TerminalFragment extends Fragment implements SharedPreferences.OnSh
     @Override
     public void onCreateContextMenu( ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo ){
         super.onCreateContextMenu( menu, v, menuInfo );
-        menu.setHeaderTitle( "Options" );
-        menu.add( TERMINAL_FRAG_GROUP_ID, v.getId(), 0, "Clear" );
-        menu.add( TERMINAL_FRAG_GROUP_ID, v.getId(), 1, "Copy to clipboard" );
+        menu.setHeaderTitle( getString( R.string.options ) );
+        menu.add( TERMINAL_FRAG_GROUP_ID, //
+                R.string.activity_main_frag_terminal_option_clear, 0,  //
+                getString( R.string.activity_main_frag_terminal_option_clear ) );
+        menu.add( TERMINAL_FRAG_GROUP_ID, //
+                R.string.activity_main_frag_terminal_option_copy, 0,  //
+                getString( R.string.activity_main_frag_terminal_option_copy ) );
     }
 
 
@@ -157,11 +162,11 @@ public class TerminalFragment extends Fragment implements SharedPreferences.OnSh
         // check that the event comes from this list
         if( item.getGroupId() != TERMINAL_FRAG_GROUP_ID ) return false;
 
-        if( item.getTitle() == "Clear" ){
+        if( item.getItemId() == R.string.activity_main_frag_terminal_option_clear ){
             mTerminalAdapter.clear();
             return true;
 
-        }else if( item.getTitle().equals( "Copy to clipboard" ) ){
+        }else if( item.getItemId() == R.string.activity_main_frag_terminal_option_copy ){
             AdapterView.AdapterContextMenuInfo info = ( AdapterView.AdapterContextMenuInfo ) item.getMenuInfo();
 
             // get a handle to the clipboard service.
@@ -173,7 +178,8 @@ public class TerminalFragment extends Fragment implements SharedPreferences.OnSh
             ClipData clip = ClipData.newPlainText( "huggi text", text );
             clipboard.setPrimaryClip( clip );
 
-            Toast.makeText( getActivity(), "Copied line to clipbaord", Toast.LENGTH_SHORT ).show();
+            Toast.makeText( getActivity(), getString( R.string.activity_main_frag_terminal_toast_copied ), //
+                    Toast.LENGTH_SHORT ).show();
             Log.i( getActivity().getPackageName(), "Copied text '" + text + "' to clipboard" );
         }
         return true;

@@ -8,16 +8,16 @@
         <!--android:visible="false"-->
 
     <item android:id="@+id/menu_prefs"
-        android:title="App Settings" />
+        android:title="@string/main_menu_app_settings" />
 
 
     <item
         android:id="@+id/menu_bt_settings"
         android:orderInCategory="100"
-        android:title="Bluetooth Settings" />
+        android:title="@string/main_menu_bt_settings" />
 
     <item
         android:id="@+id/menu_about"
         android:orderInCategory="100"
-        android:title="About" />
+        android:title="@string/main_menu_about" />
 </menu>

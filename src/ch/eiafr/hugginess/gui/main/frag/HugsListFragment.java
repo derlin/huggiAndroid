@@ -119,8 +119,10 @@ public class HugsListFragment extends Fragment{
             Hug hug = mHugsListAdapter.getItem( position );
             Hugger hugger = mHuggersMap.get( hug.getHuggerID() );
 
-            menu.setHeaderTitle( "Options" );
-            menu.add( HUGSLIST_FRAG_GROUP_ID, v.getId(), 0, hugger.isLocalContact() ? "View contact" : "Save contact" );
+            menu.setHeaderTitle( getActivity().getString( R.string.options ) );
+            menu.add( HUGSLIST_FRAG_GROUP_ID, v.getId(), 0, hugger.isLocalContact() ?  //
+                    getString( R.string.activity_main_frag_hugslist_option_menu_view_contact ) : //
+                    getString( R.string.activity_main_frag_hugslist_option_menu_save_contact ) );
 
         }catch( Exception e ){
             e.printStackTrace(); // TODO

@@ -86,7 +86,8 @@ public class FirstLaunchActivity extends FragmentActivity{
         @Override
         public void onBtDisonnected(){
             if( !isMyDisconnectRequest ){
-                Toast.makeText( FirstLaunchActivity.this, "Disconnected", Toast.LENGTH_SHORT ).show();
+                Toast.makeText( FirstLaunchActivity.this, //
+                        getString( R.string.disconnected ), Toast.LENGTH_SHORT ).show();
                 finish(); // TODO: maybe a less abrupt way to handle this ?
             }else{
                 isMyDisconnectRequest = false;
@@ -101,7 +102,8 @@ public class FirstLaunchActivity extends FragmentActivity{
             // be tedious
             if( mFailedCount < MAX_CONNECTION_RETRIES ){
                 mSPP.connect( mShirtAddress );
-                Toast.makeText( FirstLaunchActivity.this, "Failed to connect, retrying", Toast.LENGTH_SHORT ).show();
+                Toast.makeText( FirstLaunchActivity.this, //
+                        getString( R.string.activity_firstlaunch_toast_conn_failed), Toast.LENGTH_SHORT ).show();
             }else{
                 mFailedCount = 0;
                 mCurrentFragment.onFail();
@@ -275,7 +277,8 @@ public class FirstLaunchActivity extends FragmentActivity{
 
 
     private void finalStep(){
-        Toast.makeText( this, "Configuration done. Welcome !", Toast.LENGTH_SHORT ).show();
+        Toast.makeText( this, getString( R.string.activity_firstlaunch_toast_config_done),//
+                Toast.LENGTH_SHORT ).show();
 
         // store the HuggiShirt's mac address
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences( this ).edit();
@@ -329,11 +332,10 @@ public class FirstLaunchActivity extends FragmentActivity{
             View view = inflater.inflate( R.layout.activity_firstlaunch_frag_manageshirt, container, false );
 
             mTextView = ( ( TextView ) view.findViewById( R.id.fl_textview ) );
-            mTextView.setText( "You will now choose your Huggi-Shirt" + "" +
-                    ".\nPlease, ensure that your Huggi-Shirt is powered and paired before proceeding." );
+            mTextView.setText( getString( R.string.activity_firstlaunch_text_choose_shirt) );
 
             mLowerButton = ( Button ) view.findViewById( R.id.fl_lower_button );
-            mLowerButton.setText( "Open bluetooth settings" );
+            mLowerButton.setText( getString( R.string.activity_firstlaunch_button_open_bt_settings) );
 
             mLowerButton.setOnClickListener( new View.OnClickListener(){
                 @Override
@@ -344,7 +346,7 @@ public class FirstLaunchActivity extends FragmentActivity{
             } );
 
             mUpperButton = ( Button ) view.findViewById( R.id.fl_upper_button );
-            mUpperButton.setText( "Select Huggi-Shirt" );
+            mUpperButton.setText( getString( R.string.activity_firstlaunch_button_select_shirt ) );
 
             view.findViewById( R.id.fl_lower_button );
             mUpperButton.setOnClickListener( new View.OnClickListener(){
@@ -399,7 +401,7 @@ public class FirstLaunchActivity extends FragmentActivity{
         @Override
         public void onFail(){
             // could not connect to the HuggiShirt
-            mTextView.setText( "Could not connect...\nTry another device ?" );
+            mTextView.setText( getString( R.string.activity_firstlaunch_text_connection_failed) );
             mProgressBar.setVisibility( View.GONE );
             mUpperButton.setEnabled( true );
         }
@@ -435,7 +437,7 @@ public class FirstLaunchActivity extends FragmentActivity{
             mEditText = ( EditText ) view.findViewById( R.id.fl_phone_edittext );
             mEditText.setText( "0" + ( mMyPhoneNumber != null && mMyPhoneNumber.length() > 3 ? //
                     mMyPhoneNumber.substring( 3 ) : "" ) ); // replace +41 by 0
-            mEditText.setHint( "0761234567" );
+            mEditText.setHint( getString( R.string.activity_firstlaunch_text_phonenbr_example) );
             mEditText.setOnEditorActionListener( this );
 
             mUpperButton = ( Button ) view.findViewById( R.id.fl_upper_button );
@@ -457,19 +459,18 @@ public class FirstLaunchActivity extends FragmentActivity{
 
 
         private void setConfirmView(){
-            mTextView.setText( String.format( "The current ID registered in your Huggi-Shirt is %s.\n" + //
-                    " Is it correct ?", mHuggerId ) );
-            mUpperButton.setText( "Yep!" );
-            mLowerButton.setText( "Nope, change it !" );
+            mTextView.setText( String.format( getString( R.string.activity_firstlaunch_text_confirm_shirt_id), mHuggerId ) );
+            mUpperButton.setText( getString( R.string.activity_firstlaunch_button_confirm_id) );
+            mLowerButton.setText( getString( R.string.activity_firstlaunch_button_change_id) );
             mEditText.setVisibility( View.GONE );
         }
 
 
         private void setEditView(){
             if( !isIdAlreadySet ) mLowerButton.setEnabled( false );
-            mTextView.setText( "Please, provide your phone number:" );
-            mLowerButton.setText( "Cancel" );
-            mUpperButton.setText( "Set ID!" );
+            mTextView.setText( getString( R.string.activity_firstlaunch_text_enter_phone ) );
+            mLowerButton.setText( getString( R.string.activity_firstlaunch_button_cancel));
+            mUpperButton.setText( getString( R.string.activity_firstlaunch_button_set_id) );
             mEditText.setVisibility( View.VISIBLE );
             mEditText.requestFocus();
         }
@@ -519,14 +520,15 @@ public class FirstLaunchActivity extends FragmentActivity{
                 mIsExecuting = true;
             }else{
                 // wrong id format, do nothing
-                Toast.makeText( getActivity(), "Invalid phone number...", Toast.LENGTH_SHORT ).show();
+                Toast.makeText( getActivity(), getString( R.string.activity_firstlaunch_toast_invalid_phonenbr ), //
+                        Toast.LENGTH_SHORT ).show();
             }
         }
 
 
         @Override
         public void onFail(){
-            mTextView.setText( "Error setting the ID..." );
+            mTextView.setText( getString( R.string.activity_firstlaunch_toast_error_setting_id) );
             mProgressBar.setVisibility( View.GONE );
             mIsExecuting = false;
         }

@@ -61,7 +61,7 @@ public class MainActivity extends FragmentActivity{
 
         @Override
         public void onBtHugsReceived( int cnt ){
-            String msg = "Received " + cnt + " new hug";
+            String msg = String.format( getString( R.string.activity_main_toast_hugs_received ), cnt );
             if( cnt > 1 ) msg += "s";
             Toast.makeText( MainActivity.this, msg, Toast.LENGTH_SHORT ).show();
         }
@@ -69,15 +69,16 @@ public class MainActivity extends FragmentActivity{
 
         @Override
         public void onBtAckReceived( char cmd, boolean ok ){
-            Toast.makeText( MainActivity.this, //
-                    String.format( "Command '%c' : %s", cmd, ok ? "success!" : "failed..." ), //
-                    Toast.LENGTH_SHORT ).show();
+            String msg = String.format( getString( ok ? R.string.activity_main_toast_ack_received : //
+                    R.string.activity_main_toast_nak_received ), cmd );
+            Toast.makeText( MainActivity.this, msg, Toast.LENGTH_SHORT ).show();
         }
 
 
         @Override
         public void onBtConnectionFailed(){
-            Toast.makeText( MainActivity.this, "Connection failed", Toast.LENGTH_SHORT ).show();
+            Toast.makeText( MainActivity.this, getString( R.string.activity_main_toast_connection_failed ), Toast
+                    .LENGTH_SHORT ).show();
             updateStatus();
         }
     };
@@ -179,9 +180,12 @@ public class MainActivity extends FragmentActivity{
         // create the fragments
         if( mTabsAdapter == null ){
             mTabsAdapter = new TabsAdapter( MainActivity.this, mViewPager );
-            mTabsAdapter.addTab( mActionBar.newTab().setText( "Your stats" ), HomeTabFragment.class, null );
-            mTabsAdapter.addTab( mActionBar.newTab().setText( "Hugs" ), HugsListFragment.class, null );
-            mTabsAdapter.addTab( mActionBar.newTab().setText( "Terminal" ), TerminalFragment.class, null );
+            mTabsAdapter.addTab( mActionBar.newTab().setText( //
+                    getString( R.string.activity_main_tab_title_home ) ), HomeTabFragment.class, null );
+            mTabsAdapter.addTab( mActionBar.newTab().setText( //
+                            getString( R.string.activity_main_tab_title_hugslist ) ), HugsListFragment.class, null );
+            mTabsAdapter.addTab( mActionBar.newTab().setText( //
+                            getString( R.string.activity_main_tab_title_terminal ) ), TerminalFragment.class, null );
 
             // try to restore the tab displayed on last exit
             int tabIndex = PreferenceManager.getDefaultSharedPreferences( this ).getInt( "tab", 0 );
@@ -233,28 +237,9 @@ public class MainActivity extends FragmentActivity{
         return super.onOptionsItemSelected( item );
     }
 
-    // ----------------------------------------------------
-
-//
-//    @Override
-//    public void onActivityResult( int requestCode, int resultCode, Intent data ){
-//
-//        if( requestCode == REQUEST_ENABLE_BT ){
-//            if( resultCode == Activity.RESULT_OK ){
-//                mSPP.setDeviceTargetType( DEVICE_ANDROID );
-//                Toast.makeText( this, "Bluetooth enabled", Toast.LENGTH_SHORT ).show();
-//            }else{
-//                Toast.makeText( getApplicationContext(), "Bluetooth was not enabled.", Toast.LENGTH_SHORT ).show();
-//                finish(); // TODO
-//            }
-//        }else{
-//            super.onActivityResult( requestCode, resultCode, data );
-//        }
-//    }
-
 
     /* *****************************************************************
-     * first use
+     * BT
      * ****************************************************************/
 
 
@@ -284,18 +269,20 @@ public class MainActivity extends FragmentActivity{
         switch( state ){
 
             case STATE_NONE:
-                mTextStatus.setText( "Status : not connected" );
+                mTextStatus.setText( getString( R.string.activity_main_status_disconnected ) );
                 mTextStatus.setTextColor( Color.RED );
                 break;
 
             case STATE_TURNED_OFF:
-                mTextStatus.setText( "Status : unavailable" );
+                mTextStatus.setText( getString( R.string.activity_main_status_unavailable ) );
                 mTextStatus.setTextColor( Color.RED );
                 break;
 
             case STATE_CONNECTED:
                 mTextStatus.setTextColor( Color.GREEN );
-                mTextStatus.setText( "Status : Connected to " + mSPP.getDeviceName() );
+                mTextStatus.setText( String.format( //
+                        getString( R.string.activity_main_status_connected_to ), //
+                        mSPP.getDeviceName() ) );
                 break;
         }
     }
@@ -334,7 +321,8 @@ public class MainActivity extends FragmentActivity{
             super.onPostExecute( aVoid );
 
             if( !mSPP.isBluetoothEnabled() ){
-                Toast.makeText( context, "Bluetooth is not available", Toast.LENGTH_SHORT ).show();
+                Toast.makeText( context, getString( R.string.activity_main_toast_bt_off ), //
+                        Toast.LENGTH_SHORT ).show();
             }
 
             // register listeners

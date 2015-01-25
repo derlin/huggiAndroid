@@ -15,7 +15,7 @@
         android:layout_marginLeft="15sp"
         android:layout_marginBottom="4sp"
         android:gravity="center"
-        android:text="Status : Not connected"
+        android:text="@string/activity_main_status_disconnected"
         android:textColor="#FF0000"
         android:padding="10dp"
         android:textSize="12sp" />

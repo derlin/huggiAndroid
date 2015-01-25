@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Hugginess</string>
+
+    <!-- __shared preferences keys__ -->
     <string name="pref_userid">pref_userid</string>
     <string name="pref_paired_tshirt">pref_paired_tshirt</string>
     <string name="pref_calibrate">pref_calibrate</string>
@@ -13,6 +15,95 @@
     <string name="pref_reset_app">pref_reset_app</string>
     <string name="pref_clear_db">pref_clear_db</string>
     <string name="pref_terminal_max_lines">pref_terminal_max_lines</string>
-    <string name="flag_data_set_changed">flag_data_set_changed</string>
     <string name="pref_change_pairing">pref_change_pairing</string>
+
+    <string name="flag_data_set_changed">flag_data_set_changed</string>
+
+    <!-- __general__ -->
+    <string name="options">Options</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="connected">Connected</string>
+    <string name="yes">Yes</string>
+    <string name="cancel">Cancel</string>
+    <string name="executing">Executing…</string>
+    <string name="send">Send</string>
+    <string name="command_sent">Command sent!</string>
+
+
+    <!-- __main activity__ -->
+    <!--tab titles-->
+    <string name="activity_main_tab_title_home">Your Stats</string>
+    <string name="activity_main_tab_title_hugslist">Hugs</string>
+    <string name="activity_main_tab_title_terminal">Terminal</string>
+    <!--toasts-->
+    <string name="activity_main_toast_hugs_received">Received %d new hug</string>
+    <string name="activity_main_toast_ack_received">Command \'%c\' : success !</string>
+    <string name="activity_main_toast_nak_received">Command \'%c\' : failed…</string>
+    <string name="activity_main_toast_connection_failed">Connection failed</string>
+    <string name="activity_main_toast_bt_off">Bluetooth is not available</string>
+    <!--status-->
+    <string name="activity_main_status_connected_to">Status : connected to %s</string>
+    <string name="activity_main_status_disconnected">Status : disconnected</string>
+    <string name="activity_main_status_unavailable">Status : disconnected</string>
+
+    <!-- __main activity : home fragment__ -->
+    <string name="activity_main_frag_home_top3_title">TOP 3 Huggers</string>
+    <string name="activity_main_frag_home_top3_subheader">%d hugs so far.</string>
+    <string name="activity_main_frag_home_hugs_per_day">Hugs per day</string>
+    <string name="activity_main_frag_home_hugs_per_week">Hugs per week</string>
+    <string name="activity_main_frag_home_hugs_per_month">Hugs per month</string>
+    <string name="activity_main_frag_home_avg_duration">Avg hug\'s duration</string>
+
+    <!-- __main activity : hugslist fragment__ -->
+    <string name="activity_main_frag_hugslist_option_menu_view_contact">View contact</string>
+    <string name="activity_main_frag_hugslist_option_menu_save_contact">Save contact</string>
+
+    <!-- __main activity : tab fragment__ -->
+    <string name="activity_main_frag_terminal_option_clear">Clear</string>
+    <string name="activity_main_frag_terminal_option_copy">Copy to clipboard</string>
+    <string name="activity_main_frag_terminal_toast_copied">Line copied to clipboard</string>
+
+
+    <!-- __first launch activity__ -->
+    <string name="activity_firstlaunch_toast_conn_failed">Failed to connect, retrying</string>
+    <string name="activity_firstlaunch_toast_config_done">Configuration done. Welcome !</string>
+    <string name="activity_firstlaunch_toast_invalid_phonenbr">Invalid phone number…</string>
+
+    <string name="activity_firstlaunch_text_welcome">Welcome to Hugginess!</string>
+    <string name="activity_firstlaunch_text_choose_shirt">You will now choose your Huggi-Shirt.\nPlease, ensure that your Huggi-Shirt is powered and paired before proceeding.</string>
+    <string name="activity_firstlaunch_text_connection_failed">Could not connect…\nTry another device ?</string>
+    <string name="activity_firstlaunch_text_confirm_shirt_id">The current ID registered in your Huggi-Shirt is %s.\nIs it correct ?</string>
+    <string name="activity_firstlaunch_text_enter_phone">Please, provide your phone number:</string>
+
+    <string name="activity_firstlaunch_button_open_bt_settings">Open bluetooth settings</string>
+    <string name="activity_firstlaunch_button_select_shirt">Select HuggiShirt</string>
+    <string name="activity_firstlaunch_button_confirm_id">Yep!</string>
+    <string name="activity_firstlaunch_button_change_id">Nope, change it!</string>
+    <string name="activity_firstlaunch_button_set_id">Set ID!</string>
+    <string name="activity_firstlaunch_button_cancel">Cancel</string>
+    <string name="activity_firstlaunch_toast_error_setting_id">Error setting the ID…</string>
+    <string name="activity_firstlaunch_text_phonenbr_example">0761234567</string>
+
+
+
+    <!-- __devicelist activity__ -->
+    <string name="activity_devicelist_scan_for_devices">SCAN FOR DEVICES</string>
+    <string name="main_menu_app_settings">App Settings</string>
+    <string name="main_menu_bt_settings">Bluetooth Settings</string>
+    <string name="main_menu_about">About</string>
+
+    <!-- __preferences activity__ -->
+    <string name="activity_pref_text_current_config">Current configuration</string>
+    <string name="activity_pref_text_current_config_format" formatted="false">\nID: %s\nDATA: %s\n</string>
+
+    <string name="activity_pref_dialog_title_change_shirt">Change HuggiShirt</string>
+    <string name="activity_pref_dialog_title_clear_data">Clear Data</string>
+    <string name="activity_pref_dialog_title_reset_app">Reset Application</string>
+    <string name="activity_pref_dialog_confirm_delete">This action cannot be undone. Data might be lost.\nProceed anyway ?</string>
+
+    <string name="activity_pref_toast_prefs_saved">Preference saved.</string>
+    <string name="activity_pref_toast_error_not_connected">Error: HuggiShirt not connected.</string>
+    <string name="activity_pref_toast_error_input_too_long">Error: input too long (max. %d)!</string>
+    <string name="activity_pref_toast_error_value_too_small">Error: value too small (min. 10)</string>
+
 </resources>
