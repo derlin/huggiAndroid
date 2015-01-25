@@ -29,7 +29,8 @@ import static ch.eiafr.hugginess.services.bluetooth.BluetoothConstants.*;
  * Main features:
  * <ul>
  * <li>Enable/disable bluetooth adapter</li>
- * <li>Connect to another device, android or not</li>
+ * <li>Connect to another device, android or not. Warning: this device will only act as a client, so the other one
+ * should run a server (BluetoothServerSocket in case of an Android device) </li>
  * <li>Local broadcasts on bluetooth events: adapter turned on/off, connection/disconnection, data received, ..
  * . (see {@link ch.eiafr.hugginess.services.bluetooth.BluetoothConstants} for more information)</li>
  * </ul>
