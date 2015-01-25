@@ -75,11 +75,6 @@ public class TerminalFragment extends Fragment implements SharedPreferences.OnSh
     // ----------------------------------------------------
 
 
-    public TerminalFragment(){
-        System.out.println();
-    }
-
-
     @Override
     public void onAttach( Activity activity ){
         super.onAttach( activity );

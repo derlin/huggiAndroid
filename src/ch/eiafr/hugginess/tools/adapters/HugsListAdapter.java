@@ -101,7 +101,8 @@ public class HugsListAdapter extends ArrayAdapter<Hug>{
         return convertView;
     }
 
-    private void setImage(ViewHolder viewHolder, Uri uri){
+
+    private void setImage( ViewHolder viewHolder, Uri uri ){
         if( uri == null ){  // set default image
             viewHolder.avatar.setImageResource( R.drawable.huggi_logo );
         }else{
@@ -109,6 +110,7 @@ public class HugsListAdapter extends ArrayAdapter<Hug>{
         }
     }
 
+    // ----------------------------------------------------
 
     protected static class ViewHolder{
         // class used to implement the Holder Pattern

@@ -6,6 +6,19 @@
         <!--android:actionViewClass="ch.eiafr.hugginess.tools.AnimatedSyncImageView"-->
         <!--android:showAsAction="always" />-->
         <!--android:visible="false"-->
+    <item
+        android:id="@+id/menu_sort_hug"
+        android:title="search"
+        android:showAsAction="ifRoom"
+        android:visible="false"
+        android:actionViewClass="android.widget.Spinner" />
+
+    <item
+        android:id="@+id/menu_sort_order_hug"
+        android:title="search order"
+        android:showAsAction="ifRoom"
+        android:visible="false"
+        android:icon="@drawable/arrow_down" />
 
     <item android:id="@+id/menu_prefs"
         android:title="@string/main_menu_app_settings" />

@@ -12,11 +12,14 @@ import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 import android.view.*;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Spinner;
 import ch.eiafr.hugginess.R;
 import ch.eiafr.hugginess.services.bluetooth.HuggiBroadcastReceiver;
 import ch.eiafr.hugginess.sql.entities.Hug;
 import ch.eiafr.hugginess.sql.entities.Hugger;
+import ch.eiafr.hugginess.sql.helpers.HugComparator;
 import ch.eiafr.hugginess.sql.helpers.HuggiDataSource;
 import ch.eiafr.hugginess.tools.adapters.HugsListAdapter;
 
@@ -50,6 +53,9 @@ public class HugsListFragment extends Fragment{
 
     private LoadDataAsyncTask mAsyncTask;
 
+    HugComparator mHugComparator;
+    ArrayAdapter<CharSequence> mSortAdapter;
+
     // ----------------------------------------------------
 
     private HuggiBroadcastReceiver mBroadcastReceiver = new HuggiBroadcastReceiver(){
@@ -71,6 +77,11 @@ public class HugsListFragment extends Fragment{
         super.onCreate( savedInstanceState );
         View view = inflater.inflate( R.layout.activity_main_frag_hugslist, container, false );
         mListview = ( ListView ) view.findViewById( R.id.tab_contact_list );
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences( getActivity() );
+        mHugComparator = new HugComparator();
+        mHugComparator.setSortAscending( prefs.getBoolean( "sortOrder", false ) );
+        mHugComparator.setSortType( prefs.getInt( "sortType", 0 ) );
 
         setHasOptionsMenu( true );
         registerForContextMenu( mListview );
@@ -94,6 +105,17 @@ public class HugsListFragment extends Fragment{
     }
 
 
+
+    @Override
+    public void onSaveInstanceState( Bundle outState ){
+        // keep track of the current tab
+        PreferenceManager.getDefaultSharedPreferences( getActivity() ).edit() //
+                .putInt( "sortType", mHugComparator.getSortType() ) //
+                .putBoolean( "sortOrder", mHugComparator.isSortAscending() )  //
+                .commit();
+        super.onSaveInstanceState( outState );
+    }
+
     @Override
     public void onActivityResult( int requestCode, int resultCode, Intent data ){
         if( requestCode == CONTACT_DETAILS_REQUEST_CODE ){
@@ -104,6 +126,60 @@ public class HugsListFragment extends Fragment{
         }
     }
 
+    /* *****************************************************************
+     * Handle sort menu in actionbar
+     * ****************************************************************/
+
+    @Override
+    public void onCreateOptionsMenu( Menu menu, MenuInflater inflater ){
+        if( menu == null ){
+            inflater.inflate( R.menu.activity_main_menu, menu );
+        }
+
+        if( mSortAdapter == null){
+           mSortAdapter = ArrayAdapter.createFromResource( getActivity(), R.array
+                   .sort_array,  R.layout.adapter_simple_small_item_1);
+        }
+
+        // -- sort type: by date or duration
+
+        MenuItem menuSort = menu.findItem( R.id.menu_sort_hug );
+        menuSort.setVisible( true );
+
+        final Spinner spinner = ( Spinner )  menuSort.getActionView();
+        spinner.setAdapter( mSortAdapter );
+        spinner.setSelection( mHugComparator.getSortType() );
+        spinner.setOnItemSelectedListener( new AdapterView.OnItemSelectedListener(){
+            @Override
+            public void onItemSelected( AdapterView<?> adapterView, View view, int i, long l ){
+                mHugComparator.setSortType( i );
+                mHugsListAdapter.sort( mHugComparator );
+            }
+
+
+            @Override
+            public void onNothingSelected( AdapterView<?> adapterView ){
+            }
+        } );
+
+        // -- sort order: ascending or descending
+
+        final MenuItem menuSortOrder = menu.findItem( R.id.menu_sort_order_hug );
+        menuSortOrder.setVisible( true );
+        menuSortOrder.setIcon( mHugComparator.isSortAscending() ? R.drawable.arrow_up : R.drawable.arrow_down );
+        menuSortOrder.setOnMenuItemClickListener( new MenuItem.OnMenuItemClickListener(){
+            @Override
+            public boolean onMenuItemClick( MenuItem menuItem ){
+                mHugComparator.setSortAscending( !mHugComparator.isSortAscending() );
+                menuSortOrder.setIcon( mHugComparator.isSortAscending() ? R.drawable.arrow_up : R.drawable.arrow_down );
+                mHugsListAdapter.sort( mHugComparator );
+                return true;
+            }
+        } );
+
+
+        super.onCreateOptionsMenu( menu, inflater );
+    }
 
     /* *****************************************************************
      * Handling the context menu -- show/save contact
@@ -118,6 +194,7 @@ public class HugsListFragment extends Fragment{
         try{
             Hug hug = mHugsListAdapter.getItem( position );
             Hugger hugger = mHuggersMap.get( hug.getHuggerID() );
+
 
             menu.setHeaderTitle( getActivity().getString( R.string.options ) );
             menu.add( HUGSLIST_FRAG_GROUP_ID, v.getId(), 0, hugger.isLocalContact() ?  //
@@ -250,6 +327,7 @@ public class HugsListFragment extends Fragment{
                 assert mHugsList != null && mHuggersMap != null;
                 // always recreate an adapter TODO maybe a better way ?
                 mHugsListAdapter = new HugsListAdapter( getActivity(), mHugsList, mHuggersMap );
+                mHugsListAdapter.sort( mHugComparator );
                 mListview.setAdapter( mHugsListAdapter );
                 mAsyncTask = null; // mark the job as done
             }

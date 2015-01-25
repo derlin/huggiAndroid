@@ -17,6 +17,7 @@
     <string name="pref_terminal_max_lines">pref_terminal_max_lines</string>
     <string name="pref_change_pairing">pref_change_pairing</string>
 
+
     <string name="flag_data_set_changed">flag_data_set_changed</string>
 
     <!-- __general__ -->
@@ -105,5 +106,16 @@
     <string name="activity_pref_toast_error_not_connected">Error: HuggiShirt not connected.</string>
     <string name="activity_pref_toast_error_input_too_long">Error: input too long (max. %d)!</string>
     <string name="activity_pref_toast_error_value_too_small">Error: value too small (min. 10)</string>
+
+        <string-array name="sort_array">
+            <item>Date</item>
+            <item>Duration</item>
+            <item>Hugger ID</item>
+        </string-array>
+
+        <string-array name="sort_order_array">
+            <item>Desc.</item>
+            <item>Asc.</item>
+        </string-array>
 
 </resources>
