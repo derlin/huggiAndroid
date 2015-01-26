@@ -141,8 +141,10 @@ public class Hugger{
 
         }else{  // the hugger is not a local contact
             Log.v( context.getPackageName(), "Hugger [" + number + "] is not a local contact." );
-            return null;
+            details = null;
         }
+
+        cursor.close();
 
         return details;
     }

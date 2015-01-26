@@ -1,5 +1,7 @@
 package ch.eiafr.hugginess.sql.entities;
 
+import android.util.Log;
+
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -136,13 +138,19 @@ public class Hug implements Serializable{
             return null;
         }
 
-        Hug hug = new Hug();
-        hug.setHuggerID( split[ 1 ] ); // 0 is @H
-        hug.setData( split[ 2 ] );
-        hug.setDuration( Integer.parseInt( split[ 3 ] ) );
-        hug.setDate( new Date() );
+        try{
+            Hug hug = new Hug();
+            hug.setHuggerID( split[ 1 ] ); // 0 is @H
+            hug.setData( split[ 2 ] );
+            hug.setDuration( Integer.parseInt( split[ 3 ] ) );
+            hug.setDate( new Date() );
 
-        return hug;
+            return hug;
+
+        }catch( Exception e ){
+            Log.d( "Hugginess: Hug.java", "Could not parse hug, invalid format " + e );
+            return null;
+        }
     }
 
 
