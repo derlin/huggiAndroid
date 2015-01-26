@@ -53,8 +53,8 @@ public class HugsListFragment extends Fragment{
 
     private LoadDataAsyncTask mAsyncTask;
 
-    HugComparator mHugComparator;
-    ArrayAdapter<CharSequence> mSortAdapter;
+    private HugComparator mHugComparator;
+    private ArrayAdapter<CharSequence> mSortAdapter;
 
     // ----------------------------------------------------
 

@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * This class is the Adapter used by the {@link ch.eiafr.hugginess.gui.main.frag.TerminalFragment}.
- * It mimics a TextView using a list and works as a FIFO: new lines will be added at the bottom and oldest items will
+ * It mimics a TextView using a mList and works as a FIFO: new lines will be added at the bottom and oldest items will
  * be discarded if the number of items  exceeds {@link #getMaxLines()}.
  *
  * @author Lucy Linder
@@ -25,7 +25,7 @@ public class TerminalAdapter extends BaseAdapter{
 
     private final Activity mActivity;
     private int mMaxLines = -1;
-    private List<String> list = new LinkedList<>();
+    private List<String> mList = new LinkedList<>();
 
 
     public TerminalAdapter( Activity activity ){
@@ -47,13 +47,13 @@ public class TerminalAdapter extends BaseAdapter{
 
     @Override
     public int getCount(){
-        return list.size();
+        return mList.size();
     }
 
 
     @Override
     public String getItem( int i ){
-        return list.get( i );
+        return mList.get( i );
     }
 
 
@@ -70,13 +70,13 @@ public class TerminalAdapter extends BaseAdapter{
             trimList();
         }
 
-        list.add( line );
+        mList.add( line );
         notifyDataSetChanged();
     }
 
     /** Clear the adapter **/
     public void clear(){
-        list.clear();
+        mList.clear();
         notifyDataSetChanged();
     }
 
@@ -124,8 +124,8 @@ public class TerminalAdapter extends BaseAdapter{
 
     private void trimList(){
         // remove the oldest lines
-        while( list.size() > mMaxLines ){
-            list.remove( 0 );
+        while( mList.size() > mMaxLines ){
+            mList.remove( 0 );
         }//end while
     }
 

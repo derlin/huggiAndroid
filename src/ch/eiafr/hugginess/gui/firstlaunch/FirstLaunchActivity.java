@@ -321,9 +321,9 @@ public class FirstLaunchActivity extends FragmentActivity{
      * ****************************************************************/
 
     class ChooseTshirtFragment extends Fragment implements FirstLaunchFragment{
-        Button mLowerButton, mUpperButton;
-        ProgressBar mProgressBar;
-        TextView mTextView;
+        private Button mLowerButton, mUpperButton;
+        private ProgressBar mProgressBar;
+        private TextView mTextView;
 
 
         @Override
@@ -415,11 +415,11 @@ public class FirstLaunchActivity extends FragmentActivity{
     class ConfirmIDFragment extends Fragment implements FirstLaunchFragment, View.OnClickListener, TextView
             .OnEditorActionListener{
 
-        boolean isIdInput = false, isIdAlreadySet;
-        ProgressBar mProgressBar;
-        TextView mTextView;
-        Button mUpperButton, mLowerButton;
-        EditText mEditText;
+        private boolean isIdInput = false, isIdAlreadySet;
+        private ProgressBar mProgressBar;
+        private TextView mTextView;
+        private Button mUpperButton, mLowerButton;
+        private EditText mEditText;
 
         private boolean mIsExecuting = false;
 

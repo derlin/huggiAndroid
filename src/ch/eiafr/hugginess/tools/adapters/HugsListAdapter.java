@@ -35,23 +35,23 @@ import java.util.Map;
  */
 public class HugsListAdapter extends ArrayAdapter<Hug>{
 
-    private final Activity activity;
-    private final List<Hug> hugs;
-    private Map<String, Hugger> huggers;
+    private final Activity mActivity;
+    private final List<Hug> mHugs;
+    private Map<String, Hugger> mHuggers;
 
 
     /**
      * Create the adapter
      *
      * @param activity the context
-     * @param hugs     the list of hugs
+     * @param hugs     the list of mHugs
      * @param huggers  a map of huggers, indexed by the hugger id
      */
     public HugsListAdapter( Activity activity, List<Hug> hugs, Map<String, Hugger> huggers ){
         super( activity, R.layout.adapter_hugslist_item, hugs );
-        this.activity = activity;
-        this.hugs = hugs;
-        this.huggers = huggers;
+        mActivity = activity;
+        mHugs = hugs;
+        mHuggers = huggers;
     }
 
 
@@ -62,7 +62,7 @@ public class HugsListAdapter extends ArrayAdapter<Hug>{
 
         if( convertView == null ){
             // inflate the view and create a holder
-            LayoutInflater inflater = activity.getLayoutInflater();
+            LayoutInflater inflater = mActivity.getLayoutInflater();
             convertView = inflater.inflate( R.layout.adapter_hugslist_item, null );
 
             viewHolder = new ViewHolder();
@@ -79,8 +79,8 @@ public class HugsListAdapter extends ArrayAdapter<Hug>{
 
         //-- update view
 
-        Hug hug = hugs.get( position );
-        Hugger hugger = huggers.get( hug.getHuggerID() );
+        Hug hug = mHugs.get( position );
+        Hugger hugger = mHuggers.get( hug.getHuggerID() );
         Uri imageUri = null;
 
         if( hugger.isLocalContact() ){

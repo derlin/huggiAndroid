@@ -97,7 +97,7 @@ public class BluetoothService extends Service{
 
     // Member fields
     protected final BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
-    LocalBroadcastManager mBroadcastManager;
+    protected LocalBroadcastManager mBroadcastManager;
     protected ConnectThread mConnectThread;
     protected ConnectedThread mConnectedThread;
     protected int mState = STATE_NONE;

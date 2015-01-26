@@ -26,7 +26,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -44,7 +43,6 @@ public class DeviceListActivity extends Activity {
 
     // Debugging
     private static final String TAG = "BluetoothSPP";
-    private static final boolean D = true;
 
     // Member fields
     private BluetoothAdapter mBtAdapter;
@@ -129,8 +127,7 @@ public class DeviceListActivity extends Activity {
 
     // Start device discover with the BluetoothAdapter
 	private void doDiscovery() {
-        if (D) Log.d(TAG, "doDiscovery()");
-        
+
         // Remove all element from the list
         mPairedDevicesArrayAdapter.clear();
         

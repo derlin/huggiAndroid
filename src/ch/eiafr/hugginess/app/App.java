@@ -24,12 +24,12 @@ import ch.eiafr.hugginess.services.bluetooth.HuggiBluetoothService;
  */
 public class App extends Application{
 
-    static Context appContext;
+    static Context sAppContext;
 
 
     /** @return the application context * */
     public static Context getAppContext(){
-        return appContext;
+        return sAppContext;
     }
 
     //-------------------------------------------------------------
@@ -39,7 +39,7 @@ public class App extends Application{
     public void onCreate(){
         super.onCreate();
 
-        appContext = this.getApplicationContext();
+        sAppContext = this.getApplicationContext();
         // start the bluetooth service
         Intent i = new Intent( this, HuggiBluetoothService.class );
         this.startService( i );

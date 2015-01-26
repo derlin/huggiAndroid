@@ -39,8 +39,8 @@ public class HuggiBluetoothService extends BluetoothService{
     private static HuggiBluetoothService INSTANCE;
     private IBinder myBinder = new BTBinder();
 
-    private Timer timer = null; // for ack and receive hugs
-    public List<Hug> hugBuffer = new ArrayList<>();
+    private Timer mTimer = null; // for ack and receive hugs
+    private List<Hug> mHugBuffer = new ArrayList<>();
 
 
     // ----------------------------------- singleton
@@ -92,13 +92,13 @@ public class HuggiBluetoothService extends BluetoothService{
             if( hug != null ){
                 // send ack
                 send( ACK_PREFIX.getBytes() );
-                hugBuffer.add( hug );
+                mHugBuffer.add( hug );
 
                 // first, get all the hugs and then save them
                 // since the save process might take some time...
-                if( timer == null ){
-                    timer = new Timer();
-                    timer.schedule( new TimerTask(){
+                if( mTimer == null ){
+                    mTimer = new Timer();
+                    mTimer.schedule( new TimerTask(){
                         @Override
                         public void run(){
                             insertHugs();
@@ -162,10 +162,10 @@ public class HuggiBluetoothService extends BluetoothService{
 
 
     private void insertHugs(){
-        // cancel the timer task
-        if( timer != null ){
-            timer.cancel();
-            timer = null;
+        // cancel the mTimer task
+        if( mTimer != null ){
+            mTimer.cancel();
+            mTimer = null;
         }
 
         List<Hug> newHugs = new ArrayList<>();
@@ -175,7 +175,7 @@ public class HuggiBluetoothService extends BluetoothService{
             int dbCount = dbs.getHugsCount();
             int count = 0; // keep track of the number of inserted hugs
 
-            for( Hug hug : hugBuffer ){
+            for( Hug hug : mHugBuffer ){
                 Log.d( getPackageName(), TAG + String.format( "Hug with %s, data = %s, dur = %d\n",//
                         hug.getHuggerID(), hug.getData(), hug.getDuration() ) );
 
@@ -200,7 +200,7 @@ public class HuggiBluetoothService extends BluetoothService{
             Log.e( getPackageName(), "Error: sql exception while inserting new hugs " + e );
         }
 
-        hugBuffer.clear(); // cleanup
+        mHugBuffer.clear(); // cleanup
 
     }
 

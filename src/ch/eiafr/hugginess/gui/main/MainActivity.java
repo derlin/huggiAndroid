@@ -48,7 +48,7 @@ public class MainActivity extends FragmentActivity{
     private TabsAdapter mTabsAdapter;
     private TextView mTextStatus;
 
-    HuggiBluetoothService mSPP;
+    private HuggiBluetoothService mSPP;
 
     //-------------------------------------------------------------
 
