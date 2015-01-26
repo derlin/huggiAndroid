@@ -113,6 +113,7 @@ public class FirstLaunchActivity extends FragmentActivity{
 
         @Override
         public void onBtDataReceived( String line ){
+            Log.d( getPackageName(), "First launch: received " + line );
             if( line.startsWith( DATA_PREFIX + CMD_DUMP_ALL ) ){
                 String[] split = line.split( DATA_SEP );
                 if( split.length == 3 ){ // TODO
